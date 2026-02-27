@@ -4,134 +4,104 @@ from typing import Dict, List
 from pathlib import Path
 
 
+def load_template(template_name: str) -> str:
+    """Load a template file."""
+    template_path = Path(__file__).parent.parent.parent / 'templates' / template_name
+    return template_path.read_text()
+
+
 def render_report(config, metrics: Dict, projects: List[Dict], output_path: Path, graphics_dir: Path = None):
-    """Generate Markdown report with three sections: Quarterly Snapshot, Progress Data, Per-Project Details."""
+    """Generate Markdown report using template."""
     
     report = config.report
+    template = load_template('report.md.template')
     
-    md = f"""# The State of OpenRail
-
-**Quarterly Metrics Report - {report['quarter']}**
-
-Scope: {report['from']} to {report['to']}  
-Issue date: {report['issue_date']}
-
----
-
-## 1. Quarterly Snapshot
-
-This section shows metrics for the reporting quarter only.
-
-**Summary Statistics ({report['from']} to {report['to']}):**
-
-- Active committers this quarter: **{metrics.get('quarter_committers', 0)}**
-- Human commits this quarter: **{metrics.get('quarter_commits', 0)}**
-- Contributing organizations this quarter: **{metrics.get('quarter_orgs', 0)}**
-
-"""
-    
-    # Add quarter org chart if available
+    # Prepare quarter org chart
+    quarter_org_chart = ""
     if graphics_dir:
-        quarter_org_chart = graphics_dir / 'quarter_org_distribution.png'
-        if quarter_org_chart.exists():
-            md += f'<img src="graphics/quarter_org_distribution.png" class="small-chart" alt="Commits by Organization (This Quarter)" />\n\n'
+        quarter_org_chart_path = graphics_dir / 'quarter_org_distribution.png'
+        if quarter_org_chart_path.exists():
+            quarter_org_chart = '<img src="graphics/quarter_org_distribution.png" class="small-chart" alt="Commits by Organization (This Quarter)" />\n'
     
-    md += """**Code-committing Organizations:**
-
-"""
-    
-    # List organizations
+    # Prepare quarter orgs list
+    quarter_orgs_list = ""
     if metrics.get('quarter_org_stats'):
         for org in sorted(metrics['quarter_org_stats'].keys()):
-            md += f"- {org}\n"
-        md += "\n*Some freelancers and individuals have contributed code too, but are not listed as organizations.*\n\n"
+            quarter_orgs_list += f"- {org}\n"
     
-    md += """---
-
-## 2. Progress Data (12-Month View)
-
-This section shows activity trends over the past 12 months for context.
-
-**Overall Activity:**
-
-- Total committers (12 months): **{total_committers}**
-- Total commits (12 months): **{total_commits}**
-- Total organizations (12 months): **{total_orgs}**
-
-""".format(
-        total_committers=metrics['total_committers'],
-        total_commits=metrics['total_commits'],
-        total_orgs=metrics.get('total_orgs', 0)
-    )
-    
-    # Add 12-month graphics if available
+    # Prepare activity heatmap
+    activity_heatmap = ""
     if graphics_dir:
-        heatmap_chart = graphics_dir / 'activity_heatmap.png'
-        
-        if heatmap_chart.exists():
-            md += f"![Activity Trend: Commits per Project per Month](graphics/activity_heatmap.png)\n\n"
+        heatmap_path = graphics_dir / 'activity_heatmap.png'
+        if heatmap_path.exists():
+            activity_heatmap = "![Activity Trend: Commits per Project per Month](graphics/activity_heatmap.png)\n"
     
-    md += "---\n\n## 3. Project Details\n\n"
-    md += "Activity trends and organization contributions for each project over the past 12 months.\n\n"
-    
-    # Group projects by stage
-    stages = {
-        'qualified': [],
-        'onboarded': []
-    }
-    
+    # Render projects by stage
+    stages = {'qualified': [], 'onboarded': []}
     for project in projects:
         stage = project['stage']
         if stage in stages:
             stages[stage].append(project)
     
-    # Stage 2 - Qualified
-    if stages['qualified']:
-        md += "### Stage 2 - Qualified\n\n"
-        for project in stages['qualified']:
-            md += render_project(project, metrics, graphics_dir)
+    qualified_projects = ""
+    for project in stages['qualified']:
+        qualified_projects += render_project(project, metrics, graphics_dir)
     
-    # Stage 1 - Onboarded
-    if stages['onboarded']:
-        md += "### Stage 1 - Onboarded\n\n"
-        for project in stages['onboarded']:
-            md += render_project(project, metrics, graphics_dir)
+    onboarded_projects = ""
+    for project in stages['onboarded']:
+        onboarded_projects += render_project(project, metrics, graphics_dir)
+    
+    # Fill template
+    content = template.format(
+        quarter=report['quarter'],
+        from_date=report['from'],
+        to_date=report['to'],
+        issue_date=report['issue_date'],
+        quarter_committers=metrics.get('quarter_committers', 0),
+        quarter_commits=metrics.get('quarter_commits', 0),
+        quarter_orgs=metrics.get('quarter_orgs', 0),
+        quarter_org_chart=quarter_org_chart,
+        quarter_orgs_list=quarter_orgs_list,
+        total_committers=metrics['total_committers'],
+        total_commits=metrics['total_commits'],
+        total_orgs=metrics.get('total_orgs', 0),
+        activity_heatmap=activity_heatmap,
+        qualified_projects=qualified_projects,
+        onboarded_projects=onboarded_projects
+    )
     
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(md)
+    output_path.write_text(content)
 
 
 def render_project(project: Dict, metrics: Dict, graphics_dir: Path = None) -> str:
-    """Render a single project section with 12-month activity trend."""
+    """Render a single project section using template."""
+    template = load_template('project.md.template')
+    
     project_id = project['id']
     project_metrics = metrics['projects'].get(project_id, {
         'commits': 0,
         'committers': 0,
         'orgs': 0,
-        'monthly': {}
     })
     
-    md = f"""#### {project['name']}
-
-**12-Month Statistics:**
-
-- Total commits: **{project_metrics['commits']}**
-- Total committers: **{project_metrics['committers']}**
-- Contributing organizations: **{project_metrics.get('orgs', 0)}**
-
-**Repositories:**
-"""
-    
+    # Prepare repositories list
+    repositories = ""
     for repo in project['repos']:
-        md += f"- {repo}\n"
+        repositories += f"- {repo}\n"
     
-    # Add per-project charts if they exist
+    # Prepare trend chart
+    trend_chart = ""
     if project_metrics['commits'] > 0 and graphics_dir:
-        trend_chart = graphics_dir / f'{project_id}_trend.png'
-        
-        if trend_chart.exists():
-            md += f"\n![{project['name']} - 12-Month Activity Trend by Organization](graphics/{project_id}_trend.png)\n"
+        trend_chart_path = graphics_dir / f'{project_id}_trend.png'
+        if trend_chart_path.exists():
+            trend_chart = f"![{project['name']} - 12-Month Activity Trend by Organization](graphics/{project_id}_trend.png)\n"
     
-    md += "\n---\n\n"
-    
-    return md
+    return template.format(
+        project_name=project['name'],
+        commits=project_metrics['commits'],
+        committers=project_metrics['committers'],
+        orgs=project_metrics.get('orgs', 0),
+        repositories=repositories,
+        trend_chart=trend_chart
+    )

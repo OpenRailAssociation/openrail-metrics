@@ -1,0 +1,54 @@
+# The State of OpenRail
+
+**Quarterly Metrics Report - {quarter}**
+
+Scope: {from_date} to {to_date}  
+Issue date: {issue_date}
+
+---
+
+## 1. Quarterly Snapshot
+
+This section shows metrics for the reporting quarter only.
+
+**Summary Statistics ({from_date} to {to_date}):**
+
+- Active committers this quarter: **{quarter_committers}**
+- Human commits this quarter: **{quarter_commits}**
+- Contributing organizations this quarter: **{quarter_orgs}**
+
+{quarter_org_chart}
+
+**Code-committing Organizations:**
+
+{quarter_orgs_list}
+
+*Some freelancers and individuals have contributed code too, but are not listed as organizations.*
+
+---
+
+## 2. Progress Data (12-Month View)
+
+This section shows activity trends over the past 12 months for context.
+
+**Overall Activity:**
+
+- Total committers (12 months): **{total_committers}**
+- Total commits (12 months): **{total_commits}**
+- Total organizations (12 months): **{total_orgs}**
+
+{activity_heatmap}
+
+---
+
+## 3. Project Details
+
+Activity trends and organization contributions for each project over the past 12 months.
+
+### Stage 2 - Qualified
+
+{qualified_projects}
+
+### Stage 1 - Onboarded
+
+{onboarded_projects}
