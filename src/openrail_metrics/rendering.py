@@ -4,7 +4,7 @@ from typing import Dict, List
 from pathlib import Path
 
 
-def render_report(config, metrics: Dict, projects: List[Dict], output_path: Path):
+def render_report(config, metrics: Dict, projects: List[Dict], output_path: Path, graphics_dir: Path = None):
     """Generate Markdown report."""
     
     report = config.report
@@ -24,12 +24,22 @@ Issue date: {report['issue_date']}
 
 - Total active committers: **{metrics['total_committers']}**
 - Number of human commits across all projects: **{metrics['total_commits']}**
-
----
-
-## Project Overview
+- Contributing organizations: **{metrics.get('total_orgs', 0)}**
 
 """
+    
+    # Add graphics if available
+    if graphics_dir:
+        monthly_chart = graphics_dir / 'monthly_activity.png'
+        project_chart = graphics_dir / 'project_distribution.png'
+        
+        if monthly_chart.exists():
+            md += f"![Monthly Commit Activity](graphics/monthly_activity.png)\n\n"
+        
+        if project_chart.exists():
+            md += f"![Commits by Project](graphics/project_distribution.png)\n\n"
+    
+    md += "---\n\n## Project Overview\n\n"
     
     # Group projects by stage
     stages = {
@@ -64,13 +74,15 @@ def render_project(project: Dict, metrics: Dict) -> str:
     project_metrics = metrics['projects'].get(project_id, {
         'commits': 0,
         'committers': 0,
+        'orgs': 0,
         'monthly': {}
     })
     
     md = f"""#### {project['name']}
 
 **Commits:** {project_metrics['commits']}  
-**Committers:** {project_metrics['committers']}
+**Committers:** {project_metrics['committers']}  
+**Organizations:** {project_metrics.get('orgs', 0)}
 
 **Repositories:**
 """

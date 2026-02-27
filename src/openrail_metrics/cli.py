@@ -2,7 +2,7 @@
 
 import click
 from pathlib import Path
-from . import config, git_ops, identity, aggregation, rendering
+from . import config, git_ops, identity, aggregation, rendering, graphics, pdf, attribution
 
 
 @click.group()
@@ -16,11 +16,19 @@ def cli():
 @click.option('--report', type=Path, default='report.yml', help='Report configuration file')
 @click.option('--cache-dir', type=Path, default='repos-cache', help='Repository cache directory')
 @click.option('--output-dir', type=Path, default='out', help='Output directory')
-def all(projects, report, cache_dir, output_dir):
+@click.option('--org-map', type=Path, help='Organization mapping file (SSV)')
+def all(projects, report, cache_dir, output_dir, org_map):
     """Run complete pipeline: sync, extract, aggregate, render."""
     
     click.echo("Loading configuration...")
     cfg = config.load_config(projects, report)
+    
+    # Load org mapping if provided
+    org_mapping = None
+    if org_map:
+        click.echo(f"Loading organization mapping from {org_map}...")
+        org_mapping = attribution.load_org_mapping(org_map)
+        click.echo(f"  Loaded mappings for {len(org_mapping)} email addresses")
     
     click.echo(f"Processing {len(cfg.projects)} projects...")
     
@@ -47,11 +55,13 @@ def all(projects, report, cache_dir, output_dir):
             for commit in commits:
                 canonical = identity.get_canonical_identity(commit['email'])
                 committer_id = identity.pseudonymize(canonical)
+                org = attribution.get_organization(commit['email'], project_id, org_mapping)
                 
                 commit_events.append({
                     'project_id': project_id,
                     'repo_url': repo_url,
                     'committer_id': committer_id,
+                    'org': org,
                     'date': commit['date'],
                     'hash': commit['hash']
                 })
@@ -62,10 +72,27 @@ def all(projects, report, cache_dir, output_dir):
     click.echo("Aggregating metrics...")
     metrics = aggregation.aggregate_metrics(commit_events)
     
+    # Generate graphics
+    click.echo("Generating graphics...")
+    graphics_dir = output_dir / 'graphics'
+    graphics_dir.mkdir(parents=True, exist_ok=True)
+    
+    graphics.generate_monthly_chart(metrics, graphics_dir / 'monthly_activity.png')
+    graphics.generate_project_chart(metrics, cfg.projects, graphics_dir / 'project_distribution.png')
+    
     # Render report
     click.echo("Rendering report...")
     report_path = output_dir / 'report.md'
-    rendering.render_report(cfg, metrics, cfg.projects, report_path)
+    rendering.render_report(cfg, metrics, cfg.projects, report_path, graphics_dir)
+    
+    # Generate PDF
+    click.echo("Generating PDF...")
+    pdf_path = output_dir / 'report.pdf'
+    try:
+        pdf.generate_pdf(report_path, pdf_path)
+        click.echo(f"PDF generated: {pdf_path}")
+    except Exception as e:
+        click.echo(f"Warning: PDF generation failed: {e}", err=True)
     
     click.echo(f"\nReport generated: {report_path}")
     click.echo(f"Total commits: {metrics['total_commits']}")
