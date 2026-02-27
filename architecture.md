@@ -4,8 +4,10 @@
 
 - **Language**: Python 3.11+
 - **PDF Generation**: Pandoc + WeasyPrint
-- **Git Operations**: GitPython or subprocess calls to git CLI
-- **CLI Framework**: Click or argparse
+- **Git Operations**: subprocess calls to git CLI
+- **CLI Framework**: Click
+- **Visualization**: Matplotlib
+- **Date Handling**: python-dateutil
 
 ## Project Structure
 
@@ -18,12 +20,12 @@ src/
     git_ops.py          # Repository sync and log extraction
     identity.py         # Email normalization, aliasing, pseudonymization
     attribution.py      # Organization mapping
-    aggregation.py      # Metrics calculation
-    rendering.py        # Markdown generation
+    aggregation.py      # Metrics calculation (quarter + 12-month)
+    rendering.py        # Markdown generation (3-section structure)
+    graphics.py         # Chart generation (heatmaps, stacked bars, pie charts)
     pdf.py              # PDF generation
 tests/
-  fixtures/           # Example config and mapping files
-  test_*.py
+  test_*.py           # Unit tests for core modules
 ```
 
 ## Data Flow
@@ -33,24 +35,26 @@ projects.yml + report.yml → Config
                               ↓
 repos-cache/ ← sync ← Git URLs
                               ↓
-git log → Raw commits (date, email, hash, parents)
+git log (12 months) → Raw commits (date, email, hash, parents)
                               ↓
-Normalize emails → Apply aliases → Canonical identity
+Normalize emails → Canonical identity (email:<normalized>)
                               ↓
-SHA256 → Pseudonymous committer_id
+SHA256 → Pseudonymous committer_id (first 12 chars)
                               ↓
 Apply org mapping → Commit events (project, org, committer_id, date)
                               ↓
-Aggregate → Metrics (per-project, per-org, monthly trends)
+Aggregate → Quarter metrics + 12-month metrics
                               ↓
-Render → report.md → Pandoc → report.pdf
+Generate graphics → Heatmaps, stacked charts, pie charts
+                              ↓
+Render → report.md (3 sections) → Pandoc → report.pdf
 ```
 
 ## Core Design Decisions
 
 ### Identity Processing
 - All email normalization: lowercase + strip
-- Canonical identity: `person:<key>` (if aliased) or `email:<normalized>`
+- Canonical identity: `email:<normalized>` (aliases not yet implemented)
 - Pseudonymous ID: first 12 chars of SHA256(canonical_identity)
 - No salt (deterministic across runs)
 
@@ -63,52 +67,146 @@ Render → report.md → Pandoc → report.pdf
 - Bare mirrors in `repos-cache/<sanitized-url>.git`
 - Clone once, fetch updates
 - Extract via `git log --pretty=format:...`
-- Filter: exclude bots (via mapping), exclude merges (parent count > 1)
+- Filter: exclude merges (parent count > 1)
+- Extract 12 months of data (9 months before quarter + 3 quarter months)
+
+### Time Windows
+- **Quarterly snapshot**: Metrics for the 3-month reporting period only
+- **Progress data**: 12-month rolling window for trends and context
+- **Per-project charts**: 12-month view with consistent date ranges across all projects
 
 ### Aggregation Metrics
-- Per project: commits, unique committers, orgs, monthly breakdown
-- Per org: commits across all projects
-- OpenRail-wide: total commits, committers, orgs, monthly trend
+
+**Quarter-only (snapshot):**
+- Active committers this quarter
+- Human commits this quarter
+- Contributing organizations this quarter
+- Organization commit distribution (for pie chart)
+
+**12-month (progress):**
+- Total committers (12 months)
+- Total commits (12 months)
+- Total organizations (12 months)
+- Per-project: commits, committers, orgs, monthly breakdown
+- Per-project: monthly commits by organization (for stacked charts)
+- Per-org: total commits across all projects
+
+### Visualization Strategy
+
+**Section 1 - Quarterly Snapshot:**
+- Organization pie chart (quarter-only data)
+
+**Section 2 - Progress Data:**
+- Activity heatmap: 12-month grid (projects × months) with red color intensity
+- Shows all projects with consistent month range
+
+**Section 3 - Per-Project Details:**
+- Stacked bar chart: 12-month activity by organization
+- Each organization shown as colored segment
+- Consistent month range across all projects (even if no commits)
 
 ### Output Structure
-- `out/raw/commits.ssv` - all commit events
-- `out/tables/*.csv` - summary tables
-- `out/data/*.yaml` - structured metrics
-- `out/meta/run.yml` - reproducibility metadata
-- `out/report.md` + `out/report.pdf`
+- `out/graphics/` - All generated charts
+  - `activity_heatmap.png` - 12-month project activity grid
+  - `quarter_org_distribution.png` - Quarter-only org pie chart
+  - `{project}_trend.png` - Per-project stacked bar charts
+- `out/report.md` - Three-section Markdown report
+- `out/report.pdf` - PDF with embedded graphics
 
-## MVP Scope
+## Report Structure
 
-**Phase 1 (Minimal Working Version):**
-- Load `projects.yml` and `report.yml`
-- Sync repos (clone or fetch)
-- Extract commits in date range
-- Basic email normalization (no aliases yet)
-- Default org to "Unknown"
-- Generate pseudonymous IDs
-- Aggregate: per-project commit counts and unique committers
-- Render simple Markdown report
-- Generate PDF via Pandoc
+### Section 1: Quarterly Snapshot
+- Metrics for the reporting quarter only (3 months)
+- Active committers, commits, organizations
+- Organization distribution pie chart
 
-**Deferred to Phase 2:**
-- Alias mapping
-- Organization mapping
-- Monthly trends
-- Bot filtering
-- Advanced report formatting
-- `publish` command
-- Comprehensive validation
+### Section 2: Progress Data (12-Month View)
+- Metrics over past 12 months for context
+- Activity heatmap showing all projects
+- Shows trends and patterns
+
+### Section 3: Project Details
+- Per-project 12-month statistics
+- Stacked bar charts showing monthly activity by organization
+- Grouped by project stage (Qualified, Onboarded)
+
+## Implementation Status
+
+**Completed (Phase 1+):**
+- ✅ Load `projects.yml` and `report.yml`
+- ✅ Sync repos (clone or fetch)
+- ✅ Extract commits with extended date range (12 months)
+- ✅ Email normalization
+- ✅ Organization mapping from external SSV file
+- ✅ Generate pseudonymous IDs
+- ✅ Aggregate: quarter-specific and 12-month metrics
+- ✅ Track monthly commits by organization per project
+- ✅ Render three-section Markdown report
+- ✅ Generate visualizations (heatmaps, stacked charts, pie charts)
+- ✅ Generate PDF via Pandoc + WeasyPrint
+- ✅ Unit tests for core modules
+
+**Deferred:**
+- ⏸️ Alias mapping (identity consolidation)
+- ⏸️ Bot filtering (currently manual via org mapping)
+- ⏸️ `publish` command (copy to reports/ directory)
+- ⏸️ Reproducibility metadata (out/meta/run.yml)
+- ⏸️ Raw data exports (commits.ssv, CSV tables)
+
+## Key Learnings
+
+### 1. Time Window Design
+**Challenge**: Balancing snapshot metrics vs. trend analysis.
+
+**Solution**: Dual time windows:
+- Extract 12 months of data (9 before + 3 quarter months)
+- Aggregate separately for quarter (snapshot) and 12 months (trends)
+- Provides context without diluting quarterly focus
+
+### 2. Consistent Date Ranges
+**Challenge**: Projects with sparse activity showed different month ranges.
+
+**Solution**: Calculate month range from ALL projects' data, not per-project. Ensures visual consistency and comparability.
+
+### 3. Organization Attribution in Charts
+**Challenge**: Showing both activity trends and org distribution without cluttering.
+
+**Solution**: Stacked bar charts integrate both dimensions:
+- X-axis: time (months)
+- Y-axis: commits
+- Color segments: organizations
+- Single chart replaces separate trend + pie chart
+
+### 4. Privacy-First Aggregation
+**Challenge**: Need org attribution without exposing individual identities.
+
+**Solution**: 
+- Pseudonymize at extraction time
+- Track org at event level, not identity level
+- Aggregate before rendering
+- Never write raw emails to disk
+
+### 5. Matplotlib for Reproducible Graphics
+**Challenge**: Need consistent, embeddable graphics for PDF.
+
+**Solution**:
+- Use Agg backend (non-interactive)
+- Save as PNG with fixed DPI (150)
+- Consistent color schemes (Reds for heatmap, Set3 for orgs)
+- Tight layout to prevent label cutoff
 
 ## Error Handling
 
 - Invalid config → fail fast with clear message
-- Git operation failures → log and skip repo
-- Missing mapping entries → default to "Unknown", log warning
-- Duplicate aliases/orgs → error and exit
+- Git operation failures → continue with warning (don't fail entire run)
+- Missing mapping entries → default to "Unknown", continue
+- Missing org data for project → show simple bar chart instead of stacked
 
 ## Testing Strategy
 
 - Unit tests for identity normalization and pseudonymization
-- Fixture-based tests with small example repos
-- Integration test: full pipeline with synthetic data
-- Validation tests for config schemas
+- Unit tests for aggregation logic (quarter vs. 12-month)
+- Unit tests for config loading
+- Unit tests for git operations (URL sanitization)
+- Integration testing via manual runs with real data
+- Visual inspection of generated charts
