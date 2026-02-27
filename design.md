@@ -278,6 +278,19 @@ No email or name stored.
 
 All files contain only aggregated data and pseudonymous IDs.
 
+### 12.1 Published Reports
+
+After review, finalized reports are copied to:
+
+    reports/
+      2025Q4/
+        report.md
+        report.pdf
+        meta/
+          run.yml
+
+This directory is committed to git and serves as the historical archive of published quarterly reports.
+
 ------------------------------------------------------------------------
 
 ## 13. CLI Structure
@@ -293,6 +306,13 @@ Subcommands:
     aggregate
     render
     all
+    publish
+
+The `publish` command copies reviewed outputs from `out/` to `reports/<quarter>/`:
+
+    openrail-metrics publish --report report.yml
+
+This creates the directory structure and copies `report.md`, `report.pdf`, and `meta/run.yml` for archival.
 
 ------------------------------------------------------------------------
 
