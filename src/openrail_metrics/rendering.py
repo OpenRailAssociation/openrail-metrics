@@ -34,7 +34,7 @@ This section shows metrics for the reporting quarter only ({report['from']} to {
     if graphics_dir:
         quarter_org_chart = graphics_dir / 'quarter_org_distribution.png'
         if quarter_org_chart.exists():
-            md += f"![Commits by Organization (This Quarter)](graphics/quarter_org_distribution.png)\n\n"
+            md += f'<img src="graphics/quarter_org_distribution.png" class="small-chart" alt="Commits by Organization (This Quarter)" />\n\n'
     
     md += """---
 
