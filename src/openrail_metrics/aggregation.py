@@ -18,6 +18,7 @@ def aggregate_metrics(commit_events: List[Dict]) -> Dict:
         'commits': 0,
         'committers': set(),
         'orgs': set(),
+        'org_commits': defaultdict(int),
         'monthly': defaultdict(int)
     })
     
@@ -33,6 +34,7 @@ def aggregate_metrics(commit_events: List[Dict]) -> Dict:
         
         if org != 'Unknown':
             project_stats[project_id]['orgs'].add(org)
+            project_stats[project_id]['org_commits'][org] += 1
             org_stats[org] += 1
         
         # Monthly breakdown
@@ -43,6 +45,7 @@ def aggregate_metrics(commit_events: List[Dict]) -> Dict:
     for project_id in project_stats:
         project_stats[project_id]['committers'] = len(project_stats[project_id]['committers'])
         project_stats[project_id]['orgs'] = len(project_stats[project_id]['orgs'])
+        project_stats[project_id]['org_commits'] = dict(project_stats[project_id]['org_commits'])
         project_stats[project_id]['monthly'] = dict(project_stats[project_id]['monthly'])
     
     return {

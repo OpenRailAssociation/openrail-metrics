@@ -80,16 +80,31 @@ def all(projects, report, cache_dir, output_dir, org_map):
     graphics.generate_monthly_chart(metrics, graphics_dir / 'monthly_activity.png')
     graphics.generate_project_chart(metrics, cfg.projects, graphics_dir / 'project_distribution.png')
     
+    # Generate organization pie chart if org mapping was provided
+    if org_mapping and metrics.get('orgs'):
+        graphics.generate_org_pie_chart(metrics, graphics_dir / 'org_distribution.png')
+    
     # Generate per-project charts
     for project in cfg.projects:
         project_id = project['id']
-        if metrics['projects'].get(project_id, {}).get('commits', 0) > 0:
+        project_data = metrics['projects'].get(project_id, {})
+        
+        if project_data.get('commits', 0) > 0:
             graphics.generate_project_monthly_chart(
                 project_id, 
                 project['name'], 
                 metrics, 
                 graphics_dir / f'{project_id}_monthly.png'
             )
+            
+            # Generate per-project org pie chart if org data exists
+            if org_mapping and project_data.get('org_commits'):
+                graphics.generate_project_org_pie_chart(
+                    project_id,
+                    project['name'],
+                    project_data['org_commits'],
+                    graphics_dir / f'{project_id}_orgs.png'
+                )
     
     # Render report
     click.echo("Rendering report...")

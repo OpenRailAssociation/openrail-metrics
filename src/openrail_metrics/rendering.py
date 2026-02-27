@@ -32,12 +32,16 @@ Issue date: {report['issue_date']}
     if graphics_dir:
         monthly_chart = graphics_dir / 'monthly_activity.png'
         project_chart = graphics_dir / 'project_distribution.png'
+        org_chart = graphics_dir / 'org_distribution.png'
         
         if monthly_chart.exists():
             md += f"![Monthly Commit Activity](graphics/monthly_activity.png)\n\n"
         
         if project_chart.exists():
             md += f"![Commits by Project](graphics/project_distribution.png)\n\n"
+        
+        if org_chart.exists():
+            md += f"![Commits by Organization](graphics/org_distribution.png)\n\n"
     
     md += "---\n\n## Project Overview\n\n"
     
@@ -56,19 +60,19 @@ Issue date: {report['issue_date']}
     if stages['qualified']:
         md += "### Stage 2 - Qualified\n\n"
         for project in stages['qualified']:
-            md += render_project(project, metrics)
+            md += render_project(project, metrics, graphics_dir)
     
     # Stage 1 - Onboarded
     if stages['onboarded']:
         md += "### Stage 1 - Onboarded\n\n"
         for project in stages['onboarded']:
-            md += render_project(project, metrics)
+            md += render_project(project, metrics, graphics_dir)
     
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(md)
 
 
-def render_project(project: Dict, metrics: Dict) -> str:
+def render_project(project: Dict, metrics: Dict, graphics_dir: Path = None) -> str:
     """Render a single project section."""
     project_id = project['id']
     project_metrics = metrics['projects'].get(project_id, {
@@ -90,9 +94,16 @@ def render_project(project: Dict, metrics: Dict) -> str:
     for repo in project['repos']:
         md += f"- {repo}\n"
     
-    # Add per-project chart if it has commits
-    if project_metrics['commits'] > 0:
-        md += f"\n![{project['name']} Monthly Activity](graphics/{project_id}_monthly.png)\n"
+    # Add per-project charts if they exist
+    if project_metrics['commits'] > 0 and graphics_dir:
+        monthly_chart = graphics_dir / f'{project_id}_monthly.png'
+        org_chart = graphics_dir / f'{project_id}_orgs.png'
+        
+        if monthly_chart.exists():
+            md += f"\n![{project['name']} Monthly Activity](graphics/{project_id}_monthly.png)\n"
+        
+        if org_chart.exists():
+            md += f"\n![{project['name']} Organizations](graphics/{project_id}_orgs.png)\n"
     
     # Monthly breakdown
     if project_metrics['monthly']:

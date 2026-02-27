@@ -78,3 +78,39 @@ def generate_project_monthly_chart(project_id: str, project_name: str, metrics: 
     plt.tight_layout()
     plt.savefig(output_path, dpi=150)
     plt.close()
+
+
+def generate_org_pie_chart(metrics: Dict, output_path: Path):
+    """Generate organization distribution pie chart."""
+    orgs = metrics.get('orgs', {})
+    
+    if not orgs:
+        return
+    
+    labels = list(orgs.keys())
+    sizes = list(orgs.values())
+    
+    plt.figure(figsize=(8, 8))
+    plt.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90)
+    plt.title('Commits by Organization')
+    plt.axis('equal')
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=150)
+    plt.close()
+
+
+def generate_project_org_pie_chart(project_id: str, project_name: str, project_orgs: Dict, output_path: Path):
+    """Generate organization distribution pie chart for a single project."""
+    if not project_orgs:
+        return
+    
+    labels = list(project_orgs.keys())
+    sizes = list(project_orgs.values())
+    
+    plt.figure(figsize=(7, 7))
+    plt.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90)
+    plt.title(f'{project_name} - Commits by Organization')
+    plt.axis('equal')
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=150)
+    plt.close()
