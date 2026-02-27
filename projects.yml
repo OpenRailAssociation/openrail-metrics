@@ -1,0 +1,40 @@
+projects:
+  # Stage 2 - Qualified
+  - id: osrd
+    name: OSRD
+    stage: qualified
+    repos:
+      - https://github.com/OpenRailAssociation/osrd.git
+      - https://github.com/OpenRailAssociation/osrd-ui.git
+      - https://github.com/OpenRailAssociation/osrd-design.git
+      - https://github.com/OpenRailAssociation/osrd-website.git
+      - https://github.com/OpenRailAssociation/osrd-chart.git
+      - https://github.com/OpenRailAssociation/osrd-images.git
+
+  # Stage 1 - Onboarded
+  - id: rcm-oss
+    name: RCM OSS
+    stage: onboarded
+    repos:
+      - https://github.com/OpenRailAssociation/rcm-dx.git
+      - https://github.com/OpenRailAssociation/rcm-dx-examples.git
+
+  - id: dac-migration-dss
+    name: DAC Migration DSS
+    stage: onboarded
+    repos:
+      - https://github.com/OpenRailAssociation/dac-migration-dss.git
+      - https://github.com/OpenRailAssociation/dac-migration-dss-popupsim.git
+
+  - id: netzgrafik-editor
+    name: Netzgrafik-Editor
+    stage: onboarded
+    repos:
+      - https://github.com/OpenRailAssociation/netzgrafik-editor-frontend.git
+      - https://github.com/OpenRailAssociation/netzgrafik-editor-backend.git
+
+  - id: liblrs
+    name: liblrs
+    stage: onboarded
+    repos:
+      - https://github.com/OpenRailAssociation/liblrs.git
