@@ -25,8 +25,8 @@ def all(projects, report, cache_dir, output_dir, org_map):
     click.echo("Loading configuration...")
     cfg = config.load_config(projects, report)
     
-    # Extend extraction period by 3 months before for heatmap context
-    extended_from_date = cfg.from_date - relativedelta(months=3)
+    # Extend extraction period by 9 months before for 12-month view (9 + 3 quarter months = 12)
+    extended_from_date = cfg.from_date - relativedelta(months=9)
     
     # Load org mapping if provided
     org_mapping = None
@@ -36,7 +36,7 @@ def all(projects, report, cache_dir, output_dir, org_map):
         click.echo(f"  Loaded mappings for {len(org_mapping)} email addresses")
     
     click.echo(f"Processing {len(cfg.projects)} projects...")
-    click.echo(f"Extracting commits from {extended_from_date} to {cfg.to_date} (extended for heatmap)")
+    click.echo(f"Extracting commits from {extended_from_date} to {cfg.to_date} (12-month view)")
     
     # Collect all commit events
     commit_events = []
@@ -76,7 +76,7 @@ def all(projects, report, cache_dir, output_dir, org_map):
     
     # Aggregate metrics
     click.echo("Aggregating metrics...")
-    metrics = aggregation.aggregate_metrics(commit_events)
+    metrics = aggregation.aggregate_metrics(commit_events, cfg.from_date, cfg.to_date)
     
     # Generate graphics
     click.echo("Generating graphics...")
@@ -84,12 +84,12 @@ def all(projects, report, cache_dir, output_dir, org_map):
     graphics_dir.mkdir(parents=True, exist_ok=True)
     
     graphics.generate_monthly_chart(metrics, graphics_dir / 'monthly_activity.png')
-    graphics.generate_activity_heatmap(metrics, cfg.projects, graphics_dir / 'activity_heatmap.png')
+    graphics.generate_activity_heatmap(metrics, cfg.projects, graphics_dir / 'activity_heatmap.png', months=12)
     graphics.generate_project_chart(metrics, cfg.projects, graphics_dir / 'project_distribution.png')
     
     # Generate organization pie chart if org mapping was provided
-    if org_mapping and metrics.get('orgs'):
-        graphics.generate_org_pie_chart(metrics, graphics_dir / 'org_distribution.png')
+    if org_mapping and metrics.get('quarter_org_stats'):
+        graphics.generate_org_pie_chart(metrics, graphics_dir / 'quarter_org_distribution.png', quarter_only=True)
     
     # Generate per-project charts
     for project in cfg.projects:
@@ -101,17 +101,19 @@ def all(projects, report, cache_dir, output_dir, org_map):
                 project_id, 
                 project['name'], 
                 metrics, 
-                graphics_dir / f'{project_id}_monthly.png'
+                graphics_dir / f'{project_id}_monthly.png',
+                months=12
             )
             
-            # Generate per-project org pie chart if org data exists
-            if org_mapping and project_data.get('org_commits'):
-                graphics.generate_project_org_pie_chart(
-                    project_id,
-                    project['name'],
-                    project_data['org_commits'],
-                    graphics_dir / f'{project_id}_orgs.png'
-                )
+            graphics.generate_project_org_stacked_chart(
+                project_id,
+                project['name'],
+                metrics,
+                graphics_dir / f'{project_id}_trend.png',
+                months=12
+            )
+            
+            # Remove per-project org pie chart generation
     
     # Render report
     click.echo("Rendering report...")

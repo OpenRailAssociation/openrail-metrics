@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 def render_report(config, metrics: Dict, projects: List[Dict], output_path: Path, graphics_dir: Path = None):
-    """Generate Markdown report."""
+    """Generate Markdown report with three sections: Quarterly Snapshot, Progress Data, Per-Project Details."""
     
     report = config.report
     
@@ -18,36 +18,51 @@ Issue date: {report['issue_date']}
 
 ---
 
-## OpenRail-Wide Project Statistics
+## 1. Quarterly Snapshot
+
+This section shows metrics for the reporting quarter only ({report['from']} to {report['to']}).
 
 **Summary Statistics:**
 
-- Total active committers: **{metrics['total_committers']}**
-- Number of human commits across all projects: **{metrics['total_commits']}**
-- Contributing organizations: **{metrics.get('total_orgs', 0)}**
+- Active committers this quarter: **{metrics.get('quarter_committers', 0)}**
+- Human commits this quarter: **{metrics.get('quarter_commits', 0)}**
+- Contributing organizations this quarter: **{metrics.get('quarter_orgs', 0)}**
 
 """
     
-    # Add graphics if available
+    # Add quarter org chart if available
     if graphics_dir:
-        monthly_chart = graphics_dir / 'monthly_activity.png'
+        quarter_org_chart = graphics_dir / 'quarter_org_distribution.png'
+        if quarter_org_chart.exists():
+            md += f"![Commits by Organization (This Quarter)](graphics/quarter_org_distribution.png)\n\n"
+    
+    md += """---
+
+## 2. Progress Data (12-Month View)
+
+This section shows activity trends over the past 12 months for context.
+
+**Overall Activity:**
+
+- Total committers (12 months): **{total_committers}**
+- Total commits (12 months): **{total_commits}**
+- Total organizations (12 months): **{total_orgs}**
+
+""".format(
+        total_committers=metrics['total_committers'],
+        total_commits=metrics['total_commits'],
+        total_orgs=metrics.get('total_orgs', 0)
+    )
+    
+    # Add 12-month graphics if available
+    if graphics_dir:
         heatmap_chart = graphics_dir / 'activity_heatmap.png'
-        project_chart = graphics_dir / 'project_distribution.png'
-        org_chart = graphics_dir / 'org_distribution.png'
-        
-        if monthly_chart.exists():
-            md += f"![Monthly Commit Activity](graphics/monthly_activity.png)\n\n"
         
         if heatmap_chart.exists():
             md += f"![Activity Trend: Commits per Project per Month](graphics/activity_heatmap.png)\n\n"
-        
-        if project_chart.exists():
-            md += f"![Commits by Project](graphics/project_distribution.png)\n\n"
-        
-        if org_chart.exists():
-            md += f"![Commits by Organization](graphics/org_distribution.png)\n\n"
     
-    md += "---\n\n## Project Overview\n\n"
+    md += "---\n\n## 3. Project Details\n\n"
+    md += "Activity trends and organization contributions for each project over the past 12 months.\n\n"
     
     # Group projects by stage
     stages = {
@@ -77,7 +92,7 @@ Issue date: {report['issue_date']}
 
 
 def render_project(project: Dict, metrics: Dict, graphics_dir: Path = None) -> str:
-    """Render a single project section."""
+    """Render a single project section with 12-month activity trend."""
     project_id = project['id']
     project_metrics = metrics['projects'].get(project_id, {
         'commits': 0,
@@ -88,9 +103,11 @@ def render_project(project: Dict, metrics: Dict, graphics_dir: Path = None) -> s
     
     md = f"""#### {project['name']}
 
-**Commits:** {project_metrics['commits']}  
-**Committers:** {project_metrics['committers']}  
-**Organizations:** {project_metrics.get('orgs', 0)}
+**12-Month Statistics:**
+
+- Total commits: **{project_metrics['commits']}**
+- Total committers: **{project_metrics['committers']}**
+- Contributing organizations: **{project_metrics.get('orgs', 0)}**
 
 **Repositories:**
 """
@@ -100,21 +117,10 @@ def render_project(project: Dict, metrics: Dict, graphics_dir: Path = None) -> s
     
     # Add per-project charts if they exist
     if project_metrics['commits'] > 0 and graphics_dir:
-        monthly_chart = graphics_dir / f'{project_id}_monthly.png'
-        org_chart = graphics_dir / f'{project_id}_orgs.png'
+        trend_chart = graphics_dir / f'{project_id}_trend.png'
         
-        if monthly_chart.exists():
-            md += f"\n![{project['name']} Monthly Activity](graphics/{project_id}_monthly.png)\n"
-        
-        if org_chart.exists():
-            md += f"\n![{project['name']} Organizations](graphics/{project_id}_orgs.png)\n"
-    
-    # Monthly breakdown
-    if project_metrics['monthly']:
-        md += "\n**Monthly Activity:**\n\n"
-        for month in sorted(project_metrics['monthly'].keys()):
-            count = project_metrics['monthly'][month]
-            md += f"- {month}: {count} commits\n"
+        if trend_chart.exists():
+            md += f"\n![{project['name']} - 12-Month Activity Trend by Organization](graphics/{project_id}_trend.png)\n"
     
     md += "\n---\n\n"
     
