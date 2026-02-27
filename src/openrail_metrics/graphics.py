@@ -56,3 +56,25 @@ def generate_project_chart(metrics: Dict, projects: list, output_path: Path):
     plt.tight_layout()
     plt.savefig(output_path, dpi=150)
     plt.close()
+
+
+def generate_project_monthly_chart(project_id: str, project_name: str, metrics: Dict, output_path: Path):
+    """Generate monthly activity chart for a single project."""
+    project_data = metrics['projects'].get(project_id, {})
+    monthly = project_data.get('monthly', {})
+    
+    if not monthly:
+        return
+    
+    months = sorted(monthly.keys())
+    counts = [monthly[m] for m in months]
+    
+    plt.figure(figsize=(8, 5))
+    plt.bar(months, counts, color='#0066cc')
+    plt.xlabel('Month')
+    plt.ylabel('Commits')
+    plt.title(f'{project_name} - Monthly Activity')
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=150)
+    plt.close()

@@ -90,6 +90,10 @@ def render_project(project: Dict, metrics: Dict) -> str:
     for repo in project['repos']:
         md += f"- {repo}\n"
     
+    # Add per-project chart if it has commits
+    if project_metrics['commits'] > 0:
+        md += f"\n![{project['name']} Monthly Activity](graphics/{project_id}_monthly.png)\n"
+    
     # Monthly breakdown
     if project_metrics['monthly']:
         md += "\n**Monthly Activity:**\n\n"

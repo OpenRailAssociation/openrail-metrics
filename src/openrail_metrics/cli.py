@@ -80,6 +80,17 @@ def all(projects, report, cache_dir, output_dir, org_map):
     graphics.generate_monthly_chart(metrics, graphics_dir / 'monthly_activity.png')
     graphics.generate_project_chart(metrics, cfg.projects, graphics_dir / 'project_distribution.png')
     
+    # Generate per-project charts
+    for project in cfg.projects:
+        project_id = project['id']
+        if metrics['projects'].get(project_id, {}).get('commits', 0) > 0:
+            graphics.generate_project_monthly_chart(
+                project_id, 
+                project['name'], 
+                metrics, 
+                graphics_dir / f'{project_id}_monthly.png'
+            )
+    
     # Render report
     click.echo("Rendering report...")
     report_path = output_dir / 'report.md'
