@@ -9,9 +9,9 @@ def render_report(config, metrics: Dict, projects: List[Dict], output_path: Path
     
     report = config.report
     
-    md = f"""# OpenRail Metrics Report
+    md = f"""# The State of OpenRail
 
-**{report['quarter']}**
+**Quarterly Metrics Report - {report['quarter']}**
 
 Scope: {report['from']} to {report['to']}  
 Issue date: {report['issue_date']}
@@ -20,9 +20,9 @@ Issue date: {report['issue_date']}
 
 ## 1. Quarterly Snapshot
 
-This section shows metrics for the reporting quarter only ({report['from']} to {report['to']}).
+This section shows metrics for the reporting quarter only.
 
-**Summary Statistics:**
+**Summary Statistics ({report['from']} to {report['to']}):**
 
 - Active committers this quarter: **{metrics.get('quarter_committers', 0)}**
 - Human commits this quarter: **{metrics.get('quarter_commits', 0)}**
@@ -35,6 +35,16 @@ This section shows metrics for the reporting quarter only ({report['from']} to {
         quarter_org_chart = graphics_dir / 'quarter_org_distribution.png'
         if quarter_org_chart.exists():
             md += f'<img src="graphics/quarter_org_distribution.png" class="small-chart" alt="Commits by Organization (This Quarter)" />\n\n'
+    
+    md += """**Code-committing Organizations:**
+
+"""
+    
+    # List organizations
+    if metrics.get('quarter_org_stats'):
+        for org in sorted(metrics['quarter_org_stats'].keys()):
+            md += f"- {org}\n"
+        md += "\n*Some freelancers and individuals have contributed code too, but are not listed as organizations.*\n\n"
     
     md += """---
 
