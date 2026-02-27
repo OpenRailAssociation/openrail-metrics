@@ -31,11 +31,15 @@ Issue date: {report['issue_date']}
     # Add graphics if available
     if graphics_dir:
         monthly_chart = graphics_dir / 'monthly_activity.png'
+        heatmap_chart = graphics_dir / 'activity_heatmap.png'
         project_chart = graphics_dir / 'project_distribution.png'
         org_chart = graphics_dir / 'org_distribution.png'
         
         if monthly_chart.exists():
             md += f"![Monthly Commit Activity](graphics/monthly_activity.png)\n\n"
+        
+        if heatmap_chart.exists():
+            md += f"![Activity Trend: Commits per Project per Month](graphics/activity_heatmap.png)\n\n"
         
         if project_chart.exists():
             md += f"![Commits by Project](graphics/project_distribution.png)\n\n"

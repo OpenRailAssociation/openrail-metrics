@@ -19,9 +19,14 @@ def cli():
 @click.option('--org-map', type=Path, help='Organization mapping file (SSV)')
 def all(projects, report, cache_dir, output_dir, org_map):
     """Run complete pipeline: sync, extract, aggregate, render."""
+    from datetime import datetime
+    from dateutil.relativedelta import relativedelta
     
     click.echo("Loading configuration...")
     cfg = config.load_config(projects, report)
+    
+    # Extend extraction period by 3 months before for heatmap context
+    extended_from_date = cfg.from_date - relativedelta(months=3)
     
     # Load org mapping if provided
     org_mapping = None
@@ -31,6 +36,7 @@ def all(projects, report, cache_dir, output_dir, org_map):
         click.echo(f"  Loaded mappings for {len(org_mapping)} email addresses")
     
     click.echo(f"Processing {len(cfg.projects)} projects...")
+    click.echo(f"Extracting commits from {extended_from_date} to {cfg.to_date} (extended for heatmap)")
     
     # Collect all commit events
     commit_events = []
@@ -44,7 +50,7 @@ def all(projects, report, cache_dir, output_dir, org_map):
             repo_path = git_ops.sync_repo(repo_url, cache_dir)
             
             click.echo(f"  Extracting commits...")
-            commits = git_ops.extract_commits(repo_path, cfg.from_date, cfg.to_date)
+            commits = git_ops.extract_commits(repo_path, extended_from_date, cfg.to_date)
             
             # Filter merge commits
             commits = [c for c in commits if not c['is_merge']]
@@ -78,6 +84,7 @@ def all(projects, report, cache_dir, output_dir, org_map):
     graphics_dir.mkdir(parents=True, exist_ok=True)
     
     graphics.generate_monthly_chart(metrics, graphics_dir / 'monthly_activity.png')
+    graphics.generate_activity_heatmap(metrics, cfg.projects, graphics_dir / 'activity_heatmap.png')
     graphics.generate_project_chart(metrics, cfg.projects, graphics_dir / 'project_distribution.png')
     
     # Generate organization pie chart if org mapping was provided

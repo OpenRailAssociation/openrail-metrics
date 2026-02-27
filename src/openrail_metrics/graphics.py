@@ -5,6 +5,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from pathlib import Path
 from typing import Dict
+import numpy as np
 
 
 def generate_monthly_chart(metrics: Dict, output_path: Path):
@@ -27,6 +28,89 @@ def generate_monthly_chart(metrics: Dict, output_path: Path):
     plt.ylabel('Commits')
     plt.title('Monthly Commit Activity')
     plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=150)
+    plt.close()
+
+
+def generate_activity_heatmap(metrics: Dict, projects: list, output_path: Path):
+    """Generate heatmap showing commits per project per month."""
+    from datetime import datetime
+    from dateutil.relativedelta import relativedelta
+    
+    # Collect all months across all projects
+    all_months = set()
+    for project_data in metrics['projects'].values():
+        all_months.update(project_data.get('monthly', {}).keys())
+    
+    if not all_months:
+        return
+    
+    # Get the date range - use only the last 6 months of data
+    months_in_data = sorted(all_months)
+    last_month = datetime.strptime(months_in_data[-1], '%Y-%m')
+    
+    # Start 5 months before the last month (to get 6 months total)
+    start_month = last_month - relativedelta(months=5)
+    
+    # Generate exactly 6 months
+    months = []
+    current = start_month
+    for _ in range(6):
+        months.append(current.strftime('%Y-%m'))
+        current += relativedelta(months=1)
+    
+    # Build data matrix: projects x months
+    project_names = []
+    data_matrix = []
+    
+    for project in projects:
+        project_id = project['id']
+        project_data = metrics['projects'].get(project_id, {})
+        
+        if project_data.get('commits', 0) > 0:
+            project_names.append(project['name'])
+            row = [project_data.get('monthly', {}).get(month, 0) for month in months]
+            data_matrix.append(row)
+    
+    if not project_names:
+        return
+    
+    # Create heatmap
+    fig, ax = plt.subplots(figsize=(max(10, len(months) * 1.5), max(6, len(project_names) * 0.8)))
+    
+    # Convert to numpy array for plotting
+    data = np.array(data_matrix)
+    
+    # Create heatmap with red color scheme
+    im = ax.imshow(data, cmap='Reds', aspect='auto')
+    
+    # Set ticks
+    ax.set_xticks(np.arange(len(months)))
+    ax.set_yticks(np.arange(len(project_names)))
+    ax.set_xticklabels(months)
+    ax.set_yticklabels(project_names)
+    
+    # Rotate x labels
+    plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
+    
+    # Add colorbar
+    cbar = plt.colorbar(im, ax=ax)
+    cbar.set_label('Commits', rotation=270, labelpad=15)
+    
+    # Add text annotations
+    for i in range(len(project_names)):
+        for j in range(len(months)):
+            value = data[i, j]
+            if value > 0:
+                text = ax.text(j, i, int(value), ha="center", va="center", 
+                             color="white" if value > data.max() * 0.5 else "black", 
+                             fontsize=8)
+    
+    ax.set_title('Activity Trend: Commits per Project per Month')
+    ax.set_xlabel('Month')
+    ax.set_ylabel('Project')
+    
     plt.tight_layout()
     plt.savefig(output_path, dpi=150)
     plt.close()
