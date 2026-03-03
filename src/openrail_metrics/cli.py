@@ -5,12 +5,18 @@ from pathlib import Path
 from . import config, git_ops, identity, aggregation, rendering, graphics, pdf, attribution
 
 
+class OrderedGroup(click.Group):
+    """Click group that preserves command order."""
+    def list_commands(self, ctx):
+        return list(self.commands)
+
+
 def get_default_path(filename):
     """Get default path for config files in repo root."""
     return Path(__file__).parent.parent.parent / filename
 
 
-@click.group()
+@click.group(cls=OrderedGroup)
 def cli():
     """OpenRail Metrics - Quarterly metrics reporting tool."""
     pass
@@ -146,6 +152,43 @@ def _render_report(projects_path, metrics_data, output_dir):
 
 @cli.command()
 @click.option('--projects', type=Path, default=None, help='Projects configuration file (default: projects.yml in repo)')
+@click.option('--report', type=Path, default=None, help='Report configuration file (default: report.yml in repo)')
+@click.option('--cache-dir', type=Path, default=None, help='Repository cache directory (default: repos-cache in repo)')
+@click.option('--output-dir', type=Path, default=None, help='Output directory for report and graphics (default: out in repo)')
+@click.option('--org-map', type=Path, required=True, help='Organization mapping file (SSV format)')
+def all(projects, report, cache_dir, output_dir, org_map):
+    """Run complete pipeline: sync → extract → render → pdf. Requires: org-map file."""
+    if projects is None:
+        projects = get_default_path('projects.yml')
+    if report is None:
+        report = get_default_path('report.yml')
+    if cache_dir is None:
+        cache_dir = get_default_path('repos-cache')
+    if output_dir is None:
+        output_dir = get_default_path('out')
+
+    # Step 1: Sync
+    _sync_repos(projects, cache_dir)
+
+    # Step 2: Extract and aggregate
+    metrics = _extract_metrics(projects, report, cache_dir, org_map, None)
+
+    # Step 3: Render report
+    _render_report(projects, metrics, output_dir)
+
+    # Step 4: Generate PDF
+    click.echo("Generating PDF...")
+    pdf_path = output_dir / 'report.pdf'
+    report_path = output_dir / 'report.md'
+    try:
+        pdf.generate_pdf(report_path, pdf_path)
+        click.echo(f"PDF generated: {pdf_path}")
+    except Exception as e:
+        click.echo(f"Warning: PDF generation failed: {e}", err=True)
+
+
+@cli.command()
+@click.option('--projects', type=Path, default=None, help='Projects configuration file (default: projects.yml in repo)')
 @click.option('--cache-dir', type=Path, default=None, help='Repository cache directory (default: repos-cache in repo)')
 def sync(projects, cache_dir):
     """Sync all project repositories to local cache."""
@@ -161,8 +204,8 @@ def sync(projects, cache_dir):
 @click.option('--projects', type=Path, default=None, help='Projects configuration file (default: projects.yml in repo)')
 @click.option('--report', type=Path, default=None, help='Report configuration file (default: report.yml in repo)')
 @click.option('--cache-dir', type=Path, default=None, help='Repository cache directory (default: repos-cache in repo)')
-@click.option('--org-map', type=Path, required=True, help='[REQUIRED] Organization mapping file (SSV format)')
-@click.option('--output', type=Path, default='metrics.json', help='Output metrics JSON file')
+@click.option('--org-map', type=Path, required=True, help='Organization mapping file (SSV format)')
+@click.option('--output', type=Path, default=None, help='Output metrics JSON file')
 def extract(projects, report, cache_dir, org_map, output):
     """Extract commits and aggregate metrics. Requires: synced repos, org-map file."""
     if projects is None:
@@ -171,10 +214,10 @@ def extract(projects, report, cache_dir, org_map, output):
         report = get_default_path('report.yml')
     if cache_dir is None:
         cache_dir = get_default_path('repos-cache')
+    if output is None:
+        output = get_default_path('out') / 'metrics.json'
 
     _extract_metrics(projects, report, cache_dir, org_map, output)
-    click.echo(f"Total commits: {metrics['total_commits']}")
-    click.echo(f"Total contributors: {metrics['total_contributors']}")
 
 
 @cli.command()
@@ -208,43 +251,6 @@ def pdf(input, output):
         click.echo(f"PDF generated: {output}")
     except Exception as e:
         click.echo(f"Error: PDF generation failed: {e}", err=True)
-
-
-@cli.command()
-@click.option('--projects', type=Path, default=None, help='Projects configuration file (default: projects.yml in repo)')
-@click.option('--report', type=Path, default=None, help='Report configuration file (default: report.yml in repo)')
-@click.option('--cache-dir', type=Path, default=None, help='Repository cache directory (default: repos-cache in repo)')
-@click.option('--output-dir', type=Path, default=None, help='Output directory for report and graphics (default: out in repo)')
-@click.option('--org-map', type=Path, required=True, help='[REQUIRED] Organization mapping file (SSV format)')
-def all(projects, report, cache_dir, output_dir, org_map):
-    """Run complete pipeline: sync → extract → render → PDF. Requires: org-map file."""
-    if projects is None:
-        projects = get_default_path('projects.yml')
-    if report is None:
-        report = get_default_path('report.yml')
-    if cache_dir is None:
-        cache_dir = get_default_path('repos-cache')
-    if output_dir is None:
-        output_dir = get_default_path('out')
-
-    # Step 1: Sync
-    _sync_repos(projects, cache_dir)
-
-    # Step 2: Extract and aggregate
-    metrics = _extract_metrics(projects, report, cache_dir, org_map, None)
-
-    # Step 3: Render report
-    _render_report(projects, metrics, output_dir)
-
-    # Step 4: Generate PDF
-    click.echo("Generating PDF...")
-    pdf_path = output_dir / 'report.pdf'
-    report_path = output_dir / 'report.md'
-    try:
-        pdf.generate_pdf(report_path, pdf_path)
-        click.echo(f"PDF generated: {pdf_path}")
-    except Exception as e:
-        click.echo(f"Warning: PDF generation failed: {e}", err=True)
 
 
 if __name__ == '__main__':
