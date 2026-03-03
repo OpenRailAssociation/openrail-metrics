@@ -8,19 +8,19 @@ from typing import List, Dict, Any
 
 class Config:
     """Configuration container."""
-    
+
     def __init__(self, projects: List[Dict], report: Dict):
         self.projects = projects
         self.report = report
-    
+
     @property
     def from_date(self) -> date:
         return self.report['from']
-    
+
     @property
     def to_date(self) -> date:
         return self.report['to']
-    
+
     @property
     def quarter(self) -> str:
         return self.report['quarter']

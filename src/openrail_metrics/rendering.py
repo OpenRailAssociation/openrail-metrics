@@ -12,50 +12,50 @@ def load_template(template_name: str) -> str:
 
 def render_report(config, metrics: Dict, projects: List[Dict], output_path: Path, graphics_dir: Path = None):
     """Generate Markdown report using template."""
-    
+
     report = config.report
     template = load_template('report.md.template')
-    
+
     # Prepare quarter org chart
     quarter_org_chart = ""
     if graphics_dir:
         quarter_org_chart_path = graphics_dir / 'quarter_org_distribution.png'
         if quarter_org_chart_path.exists():
             quarter_org_chart = '<img src="graphics/quarter_org_distribution.png" class="small-chart" alt="Commits by Organization (This Quarter)" />\n'
-    
+
     # Prepare quarter orgs list (exclude Bot from display)
     quarter_orgs_list = ""
     if metrics.get('quarter_org_stats'):
         for org in sorted(metrics['quarter_org_stats'].keys()):
             if org != 'Bot':
                 quarter_orgs_list += f"- {org}\n"
-    
+
     # Prepare activity heatmap
     activity_heatmap = ""
     if graphics_dir:
         heatmap_path = graphics_dir / 'activity_heatmap.png'
         if heatmap_path.exists():
             activity_heatmap = "![Activity Trend: Commits per Project per Month](graphics/activity_heatmap.png)\n"
-    
+
     # Render projects by stage
     stages = {'qualified': [], 'onboarded': [], 'administrative': []}
     for project in projects:
         stage = project['stage']
         if stage in stages:
             stages[stage].append(project)
-    
+
     qualified_projects = ""
     for project in stages['qualified']:
         qualified_projects += render_project(project, metrics, graphics_dir)
-    
+
     onboarded_projects = ""
     for project in stages['onboarded']:
         onboarded_projects += render_project(project, metrics, graphics_dir)
-    
+
     administrative_projects = ""
     for project in stages['administrative']:
         administrative_projects += render_project(project, metrics, graphics_dir)
-    
+
     # Fill template
     content = template.format(
         quarter=report['quarter'],
@@ -75,7 +75,7 @@ def render_report(config, metrics: Dict, projects: List[Dict], output_path: Path
         onboarded_projects=onboarded_projects,
         administrative_projects=administrative_projects
     )
-    
+
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(content)
 
@@ -83,29 +83,29 @@ def render_report(config, metrics: Dict, projects: List[Dict], output_path: Path
 def render_project(project: Dict, metrics: Dict, graphics_dir: Path = None) -> str:
     """Render a single project section using template."""
     template = load_template('project.md.template')
-    
+
     project_id = project['id']
     project_metrics = metrics['projects'].get(project_id, {
         'commits': 0,
         'contributors': 0,
         'orgs': 0,
     })
-    
+
     # Get project description
     project_description = project.get('description', '')
-    
+
     # Prepare repositories list with clickable links
     repositories = ""
     for repo in project['repos']:
         repositories += f"- [{repo}]({repo})\n"
-    
+
     # Prepare trend chart
     trend_chart = ""
     if project_metrics['commits'] > 0 and graphics_dir:
         trend_chart_path = graphics_dir / f'{project_id}_trend.png'
         if trend_chart_path.exists():
             trend_chart = f"![{project['name']} - 12-Month Activity Trend by Organization](graphics/{project_id}_trend.png)\n"
-    
+
     return template.format(
         project_name=project['name'],
         project_description=project_description,

@@ -82,7 +82,8 @@ def extract(projects, report, cache_dir, org_map, output):
 
         for repo_url in project['repos']:
             click.echo(f"  Extracting {repo_url}...")
-            repo_path = cache_dir / git_ops.sanitize_repo_name(repo_url) / f"{git_ops.sanitize_repo_name(repo_url)}.git"
+            repo_name = git_ops.sanitize_repo_name(repo_url)
+            repo_path = cache_dir / f"{repo_name}.git"
 
             commits = git_ops.extract_commits(repo_path, extended_from_date, cfg.to_date)
             commits = [c for c in commits if not c['is_merge']]
