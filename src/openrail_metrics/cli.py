@@ -360,10 +360,20 @@ def update_org_map(projects, cache_dir, org_map):
             all_entries[email] = (email, ','.join(projects_list), 'Unknown')
             click.echo(f"  + {email} ({', '.join(projects_list)})")
     
+    # Sort by name (case-insensitive), then by email
+    def sort_key(email):
+        committer, _, _ = all_entries[email]
+        # Extract name from "Name <email>" format
+        if '<' in committer:
+            name = committer.split('<')[0].strip()
+        else:
+            name = committer
+        return (name.lower(), email.lower())
+    
     # Write sorted entries
     with open(org_map, 'w', encoding='utf-8') as f:
         f.write(lines[0])  # Header
-        for email in sorted(all_entries.keys()):
+        for email in sorted(all_entries.keys(), key=sort_key):
             committer, projects, org = all_entries[email]
             f.write(f"{committer};{projects};{org}\n")
     

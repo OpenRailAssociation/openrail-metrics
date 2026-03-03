@@ -158,13 +158,14 @@ def test_update_org_map_no_trailing_spaces(tmp_path):
 
 
 def test_update_org_map_maintains_alphabetical_order(tmp_path):
-    """Test that entries are sorted alphabetically by email."""
+    """Test that entries are sorted by name (case-insensitive), then email."""
     org_map = tmp_path / "test_mapping.ssv"
     org_map.write_text(
         "Committer;Projects;Organization\n"
         "Zebra User <zebra@example.com>;osrd;SNCF\n"
         "Alpha User <alpha@example.com>;liblrs;DB\n"
-        "Middle User <middle@example.com>;osrd;SBB\n"
+        "alpha user <different@example.com>;osrd;SBB\n"
+        "Middle User <middle@example.com>;osrd;SNCF\n"
     )
     
     projects_file = tmp_path / "projects.yml"
@@ -196,19 +197,26 @@ def test_update_org_map_maintains_alphabetical_order(tmp_path):
     
     assert result.exit_code == 0
     
-    # Check alphabetical order
+    # Check sorting by name, then email
     lines = org_map.read_text().split('\n')
-    emails = []
+    names = []
     for line in lines[1:]:  # Skip header
         if line.strip():
             parts = line.split(';')
             if len(parts) == 3:
                 committer = parts[0]
                 if '<' in committer:
-                    email = committer.split('<')[1].split('>')[0]
+                    name = committer.split('<')[0].strip()
                 else:
-                    email = committer
-                emails.append(email.lower())
+                    name = committer
+                names.append(name)
     
-    # Verify emails are sorted
-    assert emails == sorted(emails), f"Emails not sorted: {emails}"
+    # Verify names are sorted case-insensitively
+    assert names == sorted(names, key=str.lower), f"Names not sorted: {names}"
+    
+    # Verify "Alpha User" entries are in correct order (by email)
+    alpha_lines = [line for line in lines[1:] if line.startswith('Alpha User') or line.startswith('alpha user')]
+    assert len(alpha_lines) == 2
+    # "alpha@example.com" should come before "different@example.com"
+    assert 'alpha@example.com' in alpha_lines[0]
+    assert 'different@example.com' in alpha_lines[1]
