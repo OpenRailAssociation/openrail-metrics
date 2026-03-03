@@ -4,10 +4,10 @@ from pathlib import Path
 from typing import Dict, Optional
 
 
-def load_org_mapping(path: Path) -> Dict[str, Dict[str, str]]:
+def load_org_mapping(path: Path) -> Dict[str, str]:
     """Load organization mapping from SSV file.
 
-    Returns dict: {normalized_email: {project_id: org_name}}
+    Returns dict: {normalized_email: org_name}
     """
     mapping = {}
 
@@ -33,28 +33,19 @@ def load_org_mapping(path: Path) -> Dict[str, Dict[str, str]]:
             email = committer
 
         email = email.lower().strip()
-
-        # Parse project list
-        project_ids = [p.strip() for p in projects_str.split(',')]
-
-        # Store mapping per project
-        if email not in mapping:
-            mapping[email] = {}
-
-        for project_id in project_ids:
-            mapping[email][project_id] = org.strip()
+        mapping[email] = org.strip()
 
     return mapping
 
 
 def get_organization(email: str, project_id: str, org_mapping: Optional[Dict] = None) -> str:
-    """Get organization for an email and project."""
+    """Get organization for an email."""
     if not org_mapping:
         return "Unknown"
 
     email = email.lower().strip()
 
-    if email in org_mapping and project_id in org_mapping[email]:
-        return org_mapping[email][project_id]
+    if email in org_mapping:
+        return org_mapping[email]
 
     return "Unknown"
