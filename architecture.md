@@ -63,6 +63,25 @@ Render → report.md (3 sections) → Pandoc → report.pdf
 - Only pseudonymous IDs and aggregates in outputs
 - Org/alias mapping files stay external (CLI args)
 
+### Organization Attribution
+**Design Decision**: Organization mapping is project-agnostic.
+
+**Rationale**: 
+- A person's organizational affiliation doesn't change based on which project they contribute to
+- The "Projects" column in the SSV mapping file is informational only (helps maintainers track contributor activity)
+- Attribution logic maps `email → organization` directly, ignoring project context
+- This ensures consistent attribution across all projects (e.g., administrative, technical, etc.)
+
+**Implementation**:
+- `load_org_mapping()` returns `Dict[email, org]` (not `Dict[email, Dict[project, org]]`)
+- `get_organization()` takes `project_id` parameter for API compatibility but doesn't use it for lookup
+- All commits from an email get the same organization, regardless of project
+
+**Impact**:
+- Simplifies mapping file maintenance (one entry per person, not per person-project combination)
+- Ensures administrative/infrastructure contributions are properly attributed
+- "Unknown" organization is used when email is not in mapping file
+
 ### Git Operations
 - Bare mirrors in `repos-cache/<sanitized-url>.git`
 - Clone once, fetch updates
@@ -91,6 +110,12 @@ Render → report.md (3 sections) → Pandoc → report.pdf
 - Per-project: monthly commits by organization (for stacked charts)
 - Per-org: total commits across all projects
 
+**Unknown Organization Handling:**
+- Commits from unmapped emails are attributed to "Unknown" organization
+- "Unknown" is included in all statistics and visualizations
+- Extract command reports unmapped emails as warnings to stderr
+- Helps identify missing mappings that need manual review
+
 ### Visualization Strategy
 
 **Section 1 - Quarterly Snapshot:**
@@ -106,12 +131,31 @@ Render → report.md (3 sections) → Pandoc → report.pdf
 - Consistent month range across all projects (even if no commits)
 
 ### Output Structure
+- `out/metrics.json` - Aggregated metrics (intermediate file)
 - `out/graphics/` - All generated charts
   - `activity_heatmap.png` - 12-month project activity grid
   - `quarter_org_distribution.png` - Quarter-only org pie chart
   - `{project}_trend.png` - Per-project stacked bar charts
 - `out/report.md` - Three-section Markdown report
 - `out/report.pdf` - PDF with embedded graphics
+
+### CLI Commands
+
+**Pipeline Commands:**
+- `sync` - Clone/update repositories to local cache
+- `extract` - Extract commits and aggregate metrics → `out/metrics.json`
+- `render` - Generate report and graphics from metrics → `out/report.md` + `out/graphics/`
+- `pdf` - Convert markdown to PDF → `out/report.pdf`
+- `all` - Run complete pipeline (sync → extract → render → pdf)
+  - `--skip-sync` flag to skip repository sync step
+
+**Maintenance Commands:**
+- `update-org-map` - Update organization mapping file with new committers
+  - Scans all repositories to find email addresses
+  - Updates existing entries with current project lists
+  - Adds new entries with organization set to "Unknown"
+  - Modifies file in place while preserving format
+  - No trailing spaces in project lists
 
 ## Report Structure
 

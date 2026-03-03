@@ -269,5 +269,111 @@ def pdf(input, output):
         click.echo(f"Error: PDF generation failed: {e}", err=True)
 
 
+@cli.command()
+@click.option('--projects', type=Path, default=None, help='Projects configuration file (default: projects.yml in repo)')
+@click.option('--cache-dir', type=Path, default=None, help='Repository cache directory (default: repos-cache in repo)')
+@click.option('--org-map', type=Path, required=True, help='Organization mapping file (SSV format)')
+def update_org_map(projects, cache_dir, org_map):
+    """Update organization mapping file with new committers and projects."""
+    from datetime import datetime
+    from dateutil.relativedelta import relativedelta
+    from collections import defaultdict
+    
+    if projects is None:
+        projects = get_default_path('projects.yml')
+    if cache_dir is None:
+        cache_dir = get_default_path('repos-cache')
+    
+    click.echo("Loading configuration...")
+    cfg = config.load_config(projects, get_default_path('report.yml'))
+    
+    click.echo(f"Loading existing organization mapping from {org_map}...")
+    existing_mapping = attribution.load_org_mapping(org_map)
+    click.echo(f"  Found {len(existing_mapping)} existing mappings")
+    
+    # Extract all commits to find email addresses and their projects
+    click.echo("Extracting committer information from repositories...")
+    email_projects = defaultdict(set)
+    
+    # Use a wide date range to capture all historical commits
+    start_date = datetime.now().date() - relativedelta(years=10)
+    end_date = datetime.now().date()
+    
+    for project in cfg.projects:
+        project_id = project['id']
+        click.echo(f"  Processing {project['name']}...")
+        
+        for repo_url in project['repos']:
+            repo_name = git_ops.sanitize_repo_name(repo_url)
+            repo_path = cache_dir / f"{repo_name}.git"
+            
+            if not repo_path.exists():
+                click.echo(f"    Warning: {repo_path} not found, skipping", err=True)
+                continue
+            
+            commits = git_ops.extract_commits(repo_path, start_date, end_date)
+            for commit in commits:
+                email = commit['email'].lower().strip()
+                email_projects[email].add(project_id)
+    
+    click.echo(f"\nFound {len(email_projects)} unique email addresses across all projects")
+    
+    # Read existing file to preserve order and format
+    with open(org_map, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+    
+    # Parse existing entries
+    existing_emails = set()
+    updated_lines = [lines[0]]  # Keep header
+    
+    for line in lines[1:]:
+        line = line.strip()
+        if not line:
+            continue
+        
+        parts = line.split(';')
+        if len(parts) != 3:
+            updated_lines.append(line + '\n')
+            continue
+        
+        committer, projects_str, org = parts
+        
+        # Extract email
+        if '<' in committer and '>' in committer:
+            email = committer.split('<')[1].split('>')[0]
+        else:
+            email = committer
+        
+        email = email.lower().strip()
+        existing_emails.add(email)
+        
+        # Update projects list if email is in our extracted data
+        if email in email_projects:
+            new_projects = sorted(email_projects[email])
+            updated_line = f"{committer};{','.join(new_projects)};{org}\n"
+            updated_lines.append(updated_line)
+        else:
+            updated_lines.append(line + '\n')
+    
+    # Add new entries
+    new_emails = set(email_projects.keys()) - existing_emails
+    if new_emails:
+        click.echo(f"\nAdding {len(new_emails)} new email addresses:")
+        for email in sorted(new_emails):
+            projects_list = sorted(email_projects[email])
+            new_line = f"{email};{','.join(projects_list)};Unknown\n"
+            updated_lines.append(new_line)
+            click.echo(f"  + {email} ({', '.join(projects_list)})")
+    
+    # Write updated file
+    with open(org_map, 'w', encoding='utf-8') as f:
+        f.writelines(updated_lines)
+    
+    click.echo(f"\nOrganization mapping file updated: {org_map}")
+    click.echo(f"  Total entries: {len(existing_emails) + len(new_emails)}")
+    click.echo(f"  New entries: {len(new_emails)}")
+    click.echo(f"  Updated entries: {len(existing_emails & set(email_projects.keys()))}")
+
+
 if __name__ == '__main__':
     cli()

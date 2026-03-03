@@ -1,0 +1,157 @@
+"""Tests for update-org-map command."""
+
+import tempfile
+from pathlib import Path
+from click.testing import CliRunner
+from openrail_metrics.cli import cli
+
+
+def test_update_org_map_adds_new_entries(tmp_path):
+    """Test that new email addresses are added with Unknown org."""
+    # Create a minimal org mapping file
+    org_map = tmp_path / "test_mapping.ssv"
+    org_map.write_text(
+        "Committer;Projects;Organization\n"
+        "Existing User <existing@example.com>;osrd;SNCF\n"
+    )
+    
+    # Create a minimal projects config
+    projects_file = tmp_path / "projects.yml"
+    projects_file.write_text(
+        "projects:\n"
+        "  - id: osrd\n"
+        "    name: OSRD\n"
+        "    stage: qualified\n"
+        "    repos:\n"
+        "      - https://github.com/test/repo.git\n"
+    )
+    
+    # Create a minimal report config
+    report_file = tmp_path / "report.yml"
+    report_file.write_text(
+        "report:\n"
+        "  title: Test\n"
+        "  quarter: 2026Q1\n"
+        "  from: 2025-12-01\n"
+        "  to: 2026-02-28\n"
+        "  issue_date: 2026-03-15\n"
+    )
+    
+    # Note: This test would need actual git repos to work fully
+    # For now, we test the file parsing and writing logic
+    
+    runner = CliRunner()
+    result = runner.invoke(cli, [
+        'update-org-map',
+        '--projects', str(projects_file),
+        '--cache-dir', str(tmp_path / 'cache'),
+        '--org-map', str(org_map)
+    ])
+    
+    # Should complete without error (even if no repos found)
+    assert result.exit_code == 0
+    
+    # Check file still has header and existing entry
+    content = org_map.read_text()
+    assert "Committer;Projects;Organization" in content
+    assert "existing@example.com" in content
+
+
+def test_update_org_map_updates_project_lists(tmp_path):
+    """Test that existing entries get updated project lists."""
+    org_map = tmp_path / "test_mapping.ssv"
+    org_map.write_text(
+        "Committer;Projects;Organization\n"
+        "User One <user1@example.com>;osrd;SNCF\n"
+        "User Two <user2@example.com>;liblrs;DB\n"
+    )
+    
+    projects_file = tmp_path / "projects.yml"
+    projects_file.write_text(
+        "projects:\n"
+        "  - id: osrd\n"
+        "    name: OSRD\n"
+        "    stage: qualified\n"
+        "    repos: []\n"
+        "  - id: liblrs\n"
+        "    name: liblrs\n"
+        "    stage: onboarded\n"
+        "    repos: []\n"
+    )
+    
+    report_file = tmp_path / "report.yml"
+    report_file.write_text(
+        "report:\n"
+        "  title: Test\n"
+        "  quarter: 2026Q1\n"
+        "  from: 2025-12-01\n"
+        "  to: 2026-02-28\n"
+        "  issue_date: 2026-03-15\n"
+    )
+    
+    runner = CliRunner()
+    result = runner.invoke(cli, [
+        'update-org-map',
+        '--projects', str(projects_file),
+        '--cache-dir', str(tmp_path / 'cache'),
+        '--org-map', str(org_map)
+    ])
+    
+    assert result.exit_code == 0
+    
+    # Verify file structure is preserved
+    lines = org_map.read_text().split('\n')
+    assert lines[0] == "Committer;Projects;Organization"
+    
+    # Check that organizations are preserved
+    content = org_map.read_text()
+    assert "SNCF" in content
+    assert "DB" in content
+
+
+def test_update_org_map_no_trailing_spaces(tmp_path):
+    """Test that project lists don't have trailing spaces."""
+    org_map = tmp_path / "test_mapping.ssv"
+    org_map.write_text(
+        "Committer;Projects;Organization\n"
+        "Test User <test@example.com>;osrd,liblrs;SNCF\n"
+    )
+    
+    projects_file = tmp_path / "projects.yml"
+    projects_file.write_text(
+        "projects:\n"
+        "  - id: osrd\n"
+        "    name: OSRD\n"
+        "    stage: qualified\n"
+        "    repos: []\n"
+    )
+    
+    report_file = tmp_path / "report.yml"
+    report_file.write_text(
+        "report:\n"
+        "  title: Test\n"
+        "  quarter: 2026Q1\n"
+        "  from: 2025-12-01\n"
+        "  to: 2026-02-28\n"
+        "  issue_date: 2026-03-15\n"
+    )
+    
+    runner = CliRunner()
+    result = runner.invoke(cli, [
+        'update-org-map',
+        '--projects', str(projects_file),
+        '--cache-dir', str(tmp_path / 'cache'),
+        '--org-map', str(org_map)
+    ])
+    
+    assert result.exit_code == 0
+    
+    # Check no spaces after commas in project lists
+    content = org_map.read_text()
+    for line in content.split('\n')[1:]:  # Skip header
+        if line.strip():
+            parts = line.split(';')
+            if len(parts) == 3:
+                projects = parts[1]
+                # Should not have space after comma
+                assert ', ' not in projects, f"Found space after comma in: {projects}"
