@@ -2,7 +2,8 @@
 
 import click
 from pathlib import Path
-from . import config, git_ops, identity, aggregation, rendering, graphics, pdf, attribution
+from . import config, git_ops, identity, aggregation, rendering, graphics, attribution
+from . import pdf as pdf_module
 
 
 class OrderedGroup(click.Group):
@@ -192,7 +193,7 @@ def all(projects, report, cache_dir, output_dir, org_map):
     pdf_path = output_dir / 'report.pdf'
     report_path = output_dir / 'report.md'
     try:
-        pdf.generate_pdf(report_path, pdf_path)
+        pdf_module.generate_pdf(report_path, pdf_path)
         click.echo(f"PDF generated: {pdf_path}")
     except Exception as e:
         click.echo(f"Warning: PDF generation failed: {e}", err=True)
@@ -258,7 +259,7 @@ def pdf(input, output):
     """Generate PDF from markdown report. Requires: report.md."""
     click.echo(f"Generating PDF from {input}...")
     try:
-        pdf.generate_pdf(input, output)
+        pdf_module.generate_pdf(input, output)
         click.echo(f"PDF generated: {output}")
     except Exception as e:
         click.echo(f"Error: PDF generation failed: {e}", err=True)
