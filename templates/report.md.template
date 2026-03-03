@@ -1,5 +1,7 @@
 # The State of OpenRail
 
+![OpenRail Association](openrail-logo.png)
+
 **Quarterly Metrics Report - {quarter}**
 
 Scope: {from_date} to {to_date}
@@ -13,7 +15,7 @@ This section shows metrics for the reporting quarter only.
 
 **Summary Statistics ({from_date} to {to_date}):**
 
-- Active committers this quarter: **{quarter_committers}**
+- Active contributors this quarter: **{quarter_contributors}**
 - Human commits this quarter: **{quarter_commits}**
 - Contributing organizations this quarter: **{quarter_orgs}**
 
@@ -23,6 +25,8 @@ This section shows metrics for the reporting quarter only.
 
 {quarter_orgs_list}
 
+*Note: Automated commits (bots) are excluded from the organization list above.*
+
 ---
 
 ## 2. Progress Data (12-Month View)
@@ -31,7 +35,7 @@ This section shows activity trends over the past 12 months for context.
 
 **Overall Activity:**
 
-- Total committers (12 months): **{total_committers}**
+- Total contributors (12 months): **{total_contributors}**
 - Total commits (12 months): **{total_commits}**
 - Total organizations (12 months): **{total_orgs}**
 
@@ -50,3 +54,49 @@ Activity trends and organization contributions for each project over the past 12
 ### Stage 1 - Onboarded
 
 {onboarded_projects}
+
+### Administrative Projects
+
+{administrative_projects}
+
+---
+
+## Appendix
+
+### A. Methodology
+
+This report is generated from Git commit history across all OpenRail project repositories. The metrics are calculated using the following definitions:
+
+**Contributors** are individuals who have authored at least one commit in the Git history during the reporting period. Each contributor is identified by their email address and pseudonymized using SHA256 hashing to protect privacy.
+
+**Participants** (not measured in this report) would include all individuals who actively engage with the projects, including contributors as well as those who create issues, comment on pull requests, or participate in discussions.
+
+**Organizations** are determined through a manual mapping of contributor email addresses to their affiliated organizations. Contributors without a known organizational affiliation are categorized as "Unknown" and excluded from organization-specific metrics.
+
+**Automated commits** from bots and CI/CD systems are filtered out based on commit metadata (merge commits and automated tooling commits are excluded).
+
+All data is extracted from public Git repositories and aggregated without storing any personally identifiable information in the output reports.
+
+### B. About OpenRail
+
+The OpenRail Association creates an open, autonomous and collaborative innovation space for the railway sector. Its mission is to promote the development of Open Source software projects in railways, similar to initiatives in telecommunications, automotive, and energy sectors.
+
+The objective is to provide an open space to foster innovation and software development in the railway sector. Rather than isolated in-house applications, OpenRail federates IT teams around the world in open, collaborative, scalable and robust software projects. These are IT projects by the railways and for the railways.
+
+OpenRail members include major railway organizations such as UIC, Deutsche Bahn, SNCF, SBB CFF FFS, Infrabel, ONCF, Entur, and the Flatland Association, all committed to the principles and benefits of Open Source for the railway industry.
+
+### C. Connect with Us
+
+**Website:** [https://openrailassociation.org](https://openrailassociation.org)
+
+**Email:** contact@openrailassociation.org
+
+**GitHub:** [https://github.com/OpenRailAssociation](https://github.com/OpenRailAssociation)
+
+---
+
+### License
+
+![CC BY-SA 4.0](https://i.creativecommons.org/l/by-sa/4.0/88x31.png)
+
+This report is licensed under [Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/).

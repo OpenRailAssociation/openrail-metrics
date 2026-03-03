@@ -13,11 +13,11 @@ def test_aggregate_metrics_basic():
     metrics = aggregate_metrics(events)
     
     assert metrics['total_commits'] == 3
-    assert metrics['total_committers'] == 2
+    assert metrics['total_contributors'] == 2
     assert metrics['projects']['proj1']['commits'] == 2
-    assert metrics['projects']['proj1']['committers'] == 2
+    assert metrics['projects']['proj1']['contributors'] == 2
     assert metrics['projects']['proj2']['commits'] == 1
-    assert metrics['projects']['proj2']['committers'] == 1
+    assert metrics['projects']['proj2']['contributors'] == 1
 
 
 def test_aggregate_metrics_monthly():
@@ -37,5 +37,5 @@ def test_aggregate_metrics_empty():
     metrics = aggregate_metrics([])
     
     assert metrics['total_commits'] == 0
-    assert metrics['total_committers'] == 0
+    assert metrics['total_contributors'] == 0
     assert metrics['projects'] == {}

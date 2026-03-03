@@ -283,10 +283,10 @@ def generate_org_pie_chart(metrics: Dict, output_path: Path, quarter_only: bool 
     
     plt.figure(figsize=(4, 4))
     plt.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90, textprops={'fontsize': 9})
-    plt.title(title, fontsize=11)
+    plt.title(title, fontsize=11, pad=20)
     plt.axis('equal')
-    plt.tight_layout()
-    plt.savefig(output_path, dpi=120)
+    plt.tight_layout(pad=1.5)
+    plt.savefig(output_path, dpi=120, bbox_inches='tight')
     plt.close()
 
 

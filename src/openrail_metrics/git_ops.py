@@ -19,8 +19,12 @@ def sync_repo(url: str, cache_dir: Path) -> Path:
     
     if repo_path.exists():
         # Update existing mirror
-        subprocess.run(['git', '-C', str(repo_path), 'fetch', '--prune'], 
-                      check=True, capture_output=True)
+        try:
+            subprocess.run(['git', '-C', str(repo_path), 'fetch', '--prune'], 
+                          check=True, capture_output=True, timeout=30)
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
+            # Network issue or timeout - use cached version
+            print(f"    Warning: Could not update repo (using cached version): {e}")
     else:
         # Clone as bare mirror
         cache_dir.mkdir(parents=True, exist_ok=True)

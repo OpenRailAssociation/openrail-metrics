@@ -23,11 +23,12 @@ def render_report(config, metrics: Dict, projects: List[Dict], output_path: Path
         if quarter_org_chart_path.exists():
             quarter_org_chart = '<img src="graphics/quarter_org_distribution.png" class="small-chart" alt="Commits by Organization (This Quarter)" />\n'
     
-    # Prepare quarter orgs list
+    # Prepare quarter orgs list (exclude Bot from display)
     quarter_orgs_list = ""
     if metrics.get('quarter_org_stats'):
         for org in sorted(metrics['quarter_org_stats'].keys()):
-            quarter_orgs_list += f"- {org}\n"
+            if org != 'Bot':
+                quarter_orgs_list += f"- {org}\n"
     
     # Prepare activity heatmap
     activity_heatmap = ""
@@ -37,7 +38,7 @@ def render_report(config, metrics: Dict, projects: List[Dict], output_path: Path
             activity_heatmap = "![Activity Trend: Commits per Project per Month](graphics/activity_heatmap.png)\n"
     
     # Render projects by stage
-    stages = {'qualified': [], 'onboarded': []}
+    stages = {'qualified': [], 'onboarded': [], 'administrative': []}
     for project in projects:
         stage = project['stage']
         if stage in stages:
@@ -51,23 +52,28 @@ def render_report(config, metrics: Dict, projects: List[Dict], output_path: Path
     for project in stages['onboarded']:
         onboarded_projects += render_project(project, metrics, graphics_dir)
     
+    administrative_projects = ""
+    for project in stages['administrative']:
+        administrative_projects += render_project(project, metrics, graphics_dir)
+    
     # Fill template
     content = template.format(
         quarter=report['quarter'],
         from_date=report['from'],
         to_date=report['to'],
         issue_date=report['issue_date'],
-        quarter_committers=metrics.get('quarter_committers', 0),
+        quarter_contributors=metrics.get('quarter_contributors', 0),
         quarter_commits=metrics.get('quarter_commits', 0),
         quarter_orgs=metrics.get('quarter_orgs', 0),
         quarter_org_chart=quarter_org_chart,
         quarter_orgs_list=quarter_orgs_list,
-        total_committers=metrics['total_committers'],
+        total_contributors=metrics['total_contributors'],
         total_commits=metrics['total_commits'],
         total_orgs=metrics.get('total_orgs', 0),
         activity_heatmap=activity_heatmap,
         qualified_projects=qualified_projects,
-        onboarded_projects=onboarded_projects
+        onboarded_projects=onboarded_projects,
+        administrative_projects=administrative_projects
     )
     
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -81,14 +87,17 @@ def render_project(project: Dict, metrics: Dict, graphics_dir: Path = None) -> s
     project_id = project['id']
     project_metrics = metrics['projects'].get(project_id, {
         'commits': 0,
-        'committers': 0,
+        'contributors': 0,
         'orgs': 0,
     })
     
-    # Prepare repositories list
+    # Get project description
+    project_description = project.get('description', '')
+    
+    # Prepare repositories list with clickable links
     repositories = ""
     for repo in project['repos']:
-        repositories += f"- {repo}\n"
+        repositories += f"- [{repo}]({repo})\n"
     
     # Prepare trend chart
     trend_chart = ""
@@ -99,8 +108,9 @@ def render_project(project: Dict, metrics: Dict, graphics_dir: Path = None) -> s
     
     return template.format(
         project_name=project['name'],
+        project_description=project_description,
         commits=project_metrics['commits'],
-        committers=project_metrics['committers'],
+        contributors=project_metrics['contributors'],
         orgs=project_metrics.get('orgs', 0),
         repositories=repositories,
         trend_chart=trend_chart

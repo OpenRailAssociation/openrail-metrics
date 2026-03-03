@@ -1,15 +1,18 @@
 #### {project_name}
 
+{project_description}
+
 **12-Month Statistics:**
 
 - Total commits: **{commits}**
-- Total committers: **{committers}**
+- Total contributors: **{contributors}**
 - Contributing organizations: **{orgs}**
 
-**Repositories:**
-{repositories}
-
 {trend_chart}
+
+**Repositories:**
+
+{repositories}
 
 ---
 

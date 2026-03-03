@@ -16,7 +16,7 @@ def aggregate_metrics(commit_events: List[Dict], quarter_from_date=None, quarter
     
     # Overall stats (all data)
     total_commits = len(commit_events)
-    unique_committers = set(e['committer_id'] for e in commit_events)
+    unique_contributors = set(e['committer_id'] for e in commit_events)
     unique_orgs = set(e.get('org', 'Unknown') for e in commit_events if e.get('org') != 'Unknown')
     
     # Quarter-only stats (snapshot)
@@ -27,7 +27,7 @@ def aggregate_metrics(commit_events: List[Dict], quarter_from_date=None, quarter
             if quarter_from_date <= datetime.fromisoformat(e['date'].replace('Z', '+00:00')).date() <= quarter_to_date
         ]
     
-    quarter_committers = set(e['committer_id'] for e in quarter_commits)
+    quarter_contributors = set(e['committer_id'] for e in quarter_commits)
     quarter_orgs = set(e.get('org', 'Unknown') for e in quarter_commits if e.get('org') != 'Unknown')
     
     # Quarter-only org stats
@@ -40,7 +40,7 @@ def aggregate_metrics(commit_events: List[Dict], quarter_from_date=None, quarter
     # Per-project stats (all data)
     project_stats = defaultdict(lambda: {
         'commits': 0,
-        'committers': set(),
+        'contributors': set(),
         'orgs': set(),
         'org_commits': defaultdict(int),
         'monthly': defaultdict(int),
@@ -55,7 +55,7 @@ def aggregate_metrics(commit_events: List[Dict], quarter_from_date=None, quarter
         org = event.get('org', 'Unknown')
         
         project_stats[project_id]['commits'] += 1
-        project_stats[project_id]['committers'].add(event['committer_id'])
+        project_stats[project_id]['contributors'].add(event['committer_id'])
         
         if org != 'Unknown':
             project_stats[project_id]['orgs'].add(org)
@@ -72,7 +72,7 @@ def aggregate_metrics(commit_events: List[Dict], quarter_from_date=None, quarter
     
     # Convert sets to counts and nested dicts to regular dicts
     for project_id in project_stats:
-        project_stats[project_id]['committers'] = len(project_stats[project_id]['committers'])
+        project_stats[project_id]['contributors'] = len(project_stats[project_id]['contributors'])
         project_stats[project_id]['orgs'] = len(project_stats[project_id]['orgs'])
         project_stats[project_id]['org_commits'] = dict(project_stats[project_id]['org_commits'])
         project_stats[project_id]['monthly'] = dict(project_stats[project_id]['monthly'])
@@ -85,10 +85,10 @@ def aggregate_metrics(commit_events: List[Dict], quarter_from_date=None, quarter
     
     return {
         'total_commits': total_commits,
-        'total_committers': len(unique_committers),
+        'total_contributors': len(unique_contributors),
         'total_orgs': len(unique_orgs),
         'quarter_commits': len(quarter_commits),
-        'quarter_committers': len(quarter_committers),
+        'quarter_contributors': len(quarter_contributors),
         'quarter_orgs': len(quarter_orgs),
         'quarter_org_stats': dict(quarter_org_stats),
         'projects': dict(project_stats),
