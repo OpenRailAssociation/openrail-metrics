@@ -33,7 +33,9 @@ def _sync_repos(projects_path, cache_dir):
     for project in cfg.projects:
         click.echo(f"\nProject: {project['name']}")
 
-        for repo_url in project['repos']:
+        for repo in project['repos']:
+            # Handle both old format (string) and new format (dict)
+            repo_url = repo if isinstance(repo, str) else repo['url']
             click.echo(f"  Syncing {repo_url}...")
             git_ops.sync_repo(repo_url, cache_dir)
 
@@ -53,10 +55,13 @@ def _extract_metrics(projects_path, report_path, cache_dir, org_map, output_path
     extended_from_date = cfg.from_date - relativedelta(months=9)
 
     org_mapping = None
+    email_to_canonical = None
     if org_map:
         click.echo(f"Loading organization mapping from {org_map}...")
-        org_mapping = attribution.load_org_mapping(org_map)
-        click.echo(f"  Loaded mappings for {len(org_mapping)} email addresses")
+        email_to_canonical, canonical_to_org = attribution.load_org_mapping(org_map)
+        org_mapping = (email_to_canonical, canonical_to_org)
+        click.echo(f"  Loaded mappings for {len(email_to_canonical)} email addresses")
+        click.echo(f"  Resolved to {len(canonical_to_org)} unique identities")
 
     click.echo(f"Processing {len(cfg.projects)} projects...")
     click.echo(f"Extracting commits from {extended_from_date} to {cfg.to_date} (12-month view)")
@@ -68,17 +73,25 @@ def _extract_metrics(projects_path, report_path, cache_dir, org_map, output_path
         project_id = project['id']
         click.echo(f"\nProject: {project['name']}")
 
-        for repo_url in project['repos']:
+        for repo in project['repos']:
+            # Handle both old format (string) and new format (dict with url and branches)
+            if isinstance(repo, str):
+                repo_url = repo
+                branches = None
+            else:
+                repo_url = repo['url']
+                branches = repo.get('branches')
+            
             click.echo(f"  Extracting {repo_url}...")
             repo_name = git_ops.sanitize_repo_name(repo_url)
             repo_path = cache_dir / f"{repo_name}.git"
 
-            commits = git_ops.extract_commits(repo_path, extended_from_date, cfg.to_date)
+            commits = git_ops.extract_commits(repo_path, extended_from_date, cfg.to_date, branches)
             commits = [c for c in commits if not c['is_merge']]
             click.echo(f"    Found {len(commits)} human commits")
 
             for commit in commits:
-                canonical = identity.get_canonical_identity(commit['email'])
+                canonical = identity.get_canonical_identity(commit['email'], email_to_canonical)
                 committer_id = identity.pseudonymize(canonical)
                 org = attribution.get_organization(commit['email'], project_id, org_mapping)
 
@@ -287,9 +300,12 @@ def update_org_map(projects, cache_dir, org_map):
     click.echo("Loading configuration...")
     cfg = config.load_config(projects, get_default_path('report.yml'))
     
+    # Don't load via attribution.load_org_mapping since it validates
+    # We're updating the file, so conflicts are expected
     click.echo(f"Loading existing organization mapping from {org_map}...")
-    existing_mapping = attribution.load_org_mapping(org_map)
-    click.echo(f"  Found {len(existing_mapping)} existing mappings")
+    with open(org_map, 'r', encoding='utf-8') as f:
+        existing_lines = f.readlines()
+    click.echo(f"  Found {len(existing_lines) - 1} existing entries")
     
     # Extract all commits to find email addresses and their projects
     click.echo("Extracting committer information from repositories...")
@@ -303,7 +319,15 @@ def update_org_map(projects, cache_dir, org_map):
         project_id = project['id']
         click.echo(f"  Processing {project['name']}...")
         
-        for repo_url in project['repos']:
+        for repo in project['repos']:
+            # Handle both old format (string) and new format (dict)
+            if isinstance(repo, str):
+                repo_url = repo
+                branches = None
+            else:
+                repo_url = repo['url']
+                branches = repo.get('branches')
+            
             repo_name = git_ops.sanitize_repo_name(repo_url)
             repo_path = cache_dir / f"{repo_name}.git"
             
@@ -311,7 +335,7 @@ def update_org_map(projects, cache_dir, org_map):
                 click.echo(f"    Warning: {repo_path} not found, skipping", err=True)
                 continue
             
-            commits = git_ops.extract_commits(repo_path, start_date, end_date)
+            commits = git_ops.extract_commits(repo_path, start_date, end_date, branches)
             for commit in commits:
                 email = commit['email'].lower().strip()
                 email_projects[email].add(project_id)
@@ -322,8 +346,13 @@ def update_org_map(projects, cache_dir, org_map):
     with open(org_map, 'r', encoding='utf-8') as f:
         lines = f.readlines()
     
-    # Parse all entries (existing and new)
-    all_entries = {}
+    # Check if file has canonical column
+    header = lines[0].strip()
+    has_canonical = header.count(';') == 3  # 4 columns
+    
+    # Parse all entries (existing and new) - use list to preserve duplicates
+    all_entries = []
+    seen_emails = set()
     
     for line in lines[1:]:
         line = line.strip()
@@ -331,10 +360,16 @@ def update_org_map(projects, cache_dir, org_map):
             continue
         
         parts = line.split(';')
-        if len(parts) != 3:
+        if len(parts) == 3:
+            # Old format
+            committer, projects_str, org = parts
+            canonical = None
+        elif len(parts) == 4:
+            # New format: Committer;Projects;Canonical;Organization
+            committer, projects_str, canonical, org = parts
+            canonical = canonical.strip() if canonical else None
+        else:
             continue
-        
-        committer, projects_str, org = parts
         
         # Extract email
         if '<' in committer and '>' in committer:
@@ -343,44 +378,53 @@ def update_org_map(projects, cache_dir, org_map):
             email = committer
         
         email = email.lower().strip()
+        seen_emails.add(email)
         
         # Update projects list if email is in our extracted data
         if email in email_projects:
             new_projects = sorted(email_projects[email])
-            all_entries[email] = (committer, ','.join(new_projects), org)
+            # If no canonical, default to email
+            if not canonical:
+                canonical = email
+            all_entries.append((committer, ','.join(new_projects), org, canonical))
         else:
-            all_entries[email] = (committer, projects_str, org)
+            if not canonical:
+                canonical = email
+            all_entries.append((committer, projects_str, org, canonical))
     
     # Add new entries
-    new_emails = set(email_projects.keys()) - set(all_entries.keys())
+    new_emails = set(email_projects.keys()) - seen_emails
     if new_emails:
         click.echo(f"\nAdding {len(new_emails)} new email addresses:")
-        for email in new_emails:
+        for email in sorted(new_emails):
             projects_list = sorted(email_projects[email])
-            all_entries[email] = (email, ','.join(projects_list), 'Unknown')
+            # New entries: canonical defaults to email
+            all_entries.append((email, ','.join(projects_list), 'Unknown', email))
             click.echo(f"  + {email} ({', '.join(projects_list)})")
     
-    # Sort by name (case-insensitive), then by email
-    def sort_key(email):
-        committer, _, _ = all_entries[email]
+    # Sort by canonical (case-insensitive), then by name
+    def sort_key(entry):
+        committer, _, _, canonical = entry
         # Extract name from "Name <email>" format
         if '<' in committer:
             name = committer.split('<')[0].strip()
         else:
             name = committer
-        return (name.lower(), email.lower())
+        return (canonical.lower(), name.lower())
+    
+    all_entries.sort(key=sort_key)
     
     # Write sorted entries
     with open(org_map, 'w', encoding='utf-8') as f:
-        f.write(lines[0])  # Header
-        for email in sorted(all_entries.keys(), key=sort_key):
-            committer, projects, org = all_entries[email]
-            f.write(f"{committer};{projects};{org}\n")
+        # Write header with new column order
+        f.write("Committer;Projects;Canonical;Organization\n")
+        for committer, projects, org, canonical in all_entries:
+            f.write(f"{committer};{projects};{canonical};{org}\n")
     
     click.echo(f"\nOrganization mapping file updated: {org_map}")
     click.echo(f"  Total entries: {len(all_entries)}")
     click.echo(f"  New entries: {len(new_emails)}")
-    click.echo(f"  Updated entries: {len(set(all_entries.keys()) & set(email_projects.keys()) - new_emails)}")
+    click.echo(f"  Updated entries: {len(seen_emails & set(email_projects.keys()))}")
 
 
 if __name__ == '__main__':

@@ -97,7 +97,9 @@ def render_project(project: Dict, metrics: Dict, graphics_dir: Path = None) -> s
     # Prepare repositories list with clickable links
     repositories = ""
     for repo in project['repos']:
-        repositories += f"- [{repo}]({repo})\n"
+        # Handle both old format (string) and new format (dict)
+        repo_url = repo if isinstance(repo, str) else repo['url']
+        repositories += f"- [{repo_url}]({repo_url})\n"
 
     # Prepare trend chart
     trend_chart = ""

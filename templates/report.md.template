@@ -75,6 +75,8 @@ This report is generated from Git commit history across all OpenRail project rep
 
 **Automated commits** from bots and CI/CD systems are filtered out based on commit metadata (merge commits and automated tooling commits are excluded).
 
+**Branch filtering**: Only commits from main branches (main, master, or dev as specified per repository) are included in the metrics. Feature branches and unmerged work are excluded to focus on production-ready code.
+
 All data is extracted from public Git repositories and aggregated without storing any personally identifiable information in the output reports.
 
 ### B. About OpenRail

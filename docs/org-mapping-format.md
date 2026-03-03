@@ -5,28 +5,28 @@ The organization mapping file is a semicolon-separated values (SSV) file that ma
 ## Format
 
 ```
-Committer;Projects;Organization;Canonical
-Name <email@example.com>;project1,project2;Organization Name;email@example.com
-another@example.com;project3;Another Org;another@example.com
-Name <alias@example.com>;project1;Organization Name;email@example.com
+Committer;Projects;Canonical;Organization
+Name <email@example.com>;project1,project2;email@example.com;Organization Name
+another@example.com;project3;another@example.com;Another Org
+Name <alias@example.com>;project1;email@example.com;Organization Name
 ```
 
 ## Fields
 
 1. **Committer**: Either `Name <email@example.com>` or just `email@example.com`
 2. **Projects**: Comma-separated list of project IDs (informational, helps with manual org assignment)
-3. **Organization**: Organization name (e.g., SNCF, DB, SBB, Bot, Unknown)
-4. **Canonical**: Canonical email address for this person (used for identity resolution)
+3. **Canonical**: Canonical email address for this person (used for identity resolution)
+4. **Organization**: Organization name (e.g., SNCF, DB, SBB, Bot, Unknown)
 
 ## Identity Resolution
 
 The **Canonical** column groups multiple email addresses that belong to the same person:
 
 ```
-Committer;Projects;Organization;Canonical
-Jane Smith <jane@example.com>;netzgrafik-editor;CompanyA;jane@example.com
-Jane Smith <jane.personal@example.com>;netzgrafik-editor;CompanyA;jane@example.com
-u123456 <jane@example.com>;netzgrafik-editor;CompanyA;jane@example.com
+Committer;Projects;Canonical;Organization
+Jane Smith <jane@example.com>;netzgrafik-editor;jane@example.com;CompanyA
+Jane Smith <jane.personal@example.com>;netzgrafik-editor;jane@example.com;CompanyA
+u123456 <jane@example.com>;netzgrafik-editor;jane@example.com;CompanyA
 ```
 
 All three entries have the same canonical email, so they are treated as the same person:

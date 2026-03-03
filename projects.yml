@@ -5,12 +5,18 @@ projects:
     stage: qualified
     description: "OSRD (Open Source Railway Designer) is an open source web application for railway infrastructure design, capacity analysis, timetabling and simulation. It provides tools for designing railway networks, analyzing capacity constraints, and optimizing train schedules in a collaborative environment."
     repos:
-      - https://github.com/OpenRailAssociation/osrd.git
-      - https://github.com/OpenRailAssociation/osrd-ui.git
-      - https://github.com/OpenRailAssociation/osrd-design.git
-      - https://github.com/OpenRailAssociation/osrd-website.git
-      - https://github.com/OpenRailAssociation/osrd-chart.git
-      - https://github.com/OpenRailAssociation/osrd-images.git
+      - url: https://github.com/OpenRailAssociation/osrd.git
+        branches: [dev]
+      - url: https://github.com/OpenRailAssociation/osrd-ui.git
+        branches: [dev]
+      - url: https://github.com/OpenRailAssociation/osrd-design.git
+        branches: [main]
+      - url: https://github.com/OpenRailAssociation/osrd-website.git
+        branches: [master]
+      - url: https://github.com/OpenRailAssociation/osrd-chart.git
+        branches: [main]
+      - url: https://github.com/OpenRailAssociation/osrd-images.git
+        branches: [main]
 
   # Stage 1 - Onboarded
   - id: rcm-oss
@@ -18,31 +24,38 @@ projects:
     stage: onboarded
     description: "RCM-DX (Rail Condition Monitoring Data eXchange) is an open data format specification for railway diagnostic data. Based on the HDF5 format, it enables easy accessibility and visualization of railway condition monitoring data from mobile and stationary measuring systems, facilitating data exchange between railway companies and suppliers."
     repos:
-      - https://github.com/OpenRailAssociation/rcm-dx.git
-      - https://github.com/OpenRailAssociation/rcm-dx-examples.git
+      - url: https://github.com/OpenRailAssociation/rcm-dx.git
+        branches: [main]
+      - url: https://github.com/OpenRailAssociation/rcm-dx-examples.git
+        branches: [main]
 
   - id: dac-migration-dss
     name: DAC Migration DSS
     stage: onboarded
     description: "The Digital Automatic Coupler Migration Decision Support System helps plan the retrofit of approximately 500,000 European freight wagons from screw couplers to digital automatic couplers. This strategic planning tool supports rail undertakings, wagon owners, and workshops in coordinating this unprecedented industry-wide migration."
     repos:
-      - https://github.com/OpenRailAssociation/dac-migration-dss.git
-      - https://github.com/OpenRailAssociation/dac-migration-dss-popupsim.git
+      - url: https://github.com/OpenRailAssociation/dac-migration-dss.git
+        branches: [main]
+      - url: https://github.com/OpenRailAssociation/dac-migration-dss-popupsim.git
+        branches: [main]
 
   - id: netzgrafik-editor
     name: Netzgrafik-Editor
     stage: onboarded
     description: "Netzgrafik-Editor is a powerful software for creating, modifying, and analyzing regular-interval timetables. Originally developed by Swiss Federal Railways (SBB), it provides an intuitive graphical interface for timetable planning with real-time analysis capabilities, applicable across various transportation domains including rail, bus, and logistics planning."
     repos:
-      - https://github.com/OpenRailAssociation/netzgrafik-editor-frontend.git
-      - https://github.com/OpenRailAssociation/netzgrafik-editor-backend.git
+      - url: https://github.com/OpenRailAssociation/netzgrafik-editor-frontend.git
+        branches: [main]
+      - url: https://github.com/OpenRailAssociation/netzgrafik-editor-backend.git
+        branches: [main]
 
   - id: liblrs
     name: liblrs
     stage: onboarded
     description: "liblrs is a flexible, high-performance library for working with Linear Referencing Systems (LRS) and geographical data in the railway context. It enables manipulation of reference points along railway lines, handling complex edge cases like displaced anchors, varying distances, and multiple coordinate systems, with bindings for Rust, Python, and JavaScript."
     repos:
-      - https://github.com/OpenRailAssociation/liblrs.git
+      - url: https://github.com/OpenRailAssociation/liblrs.git
+        branches: [main]
 
   # Administrative Projects
   - id: administrative
@@ -50,15 +63,27 @@ projects:
     stage: administrative
     description: "Administrative projects support the technical infrastructure and organizational operations of OpenRail Association. These include tools for GitHub management, compliance assistance, website maintenance, and conference organization, ensuring smooth operation of the association's technical ecosystem."
     repos:
-      - https://github.com/OpenRailAssociation/annual-report.git
-      - https://github.com/OpenRailAssociation/compliance-assistant.git
-      - https://github.com/OpenRailAssociation/FOSDEM.git
-      - https://github.com/OpenRailAssociation/github-org-manager.git
-      - https://github.com/OpenRailAssociation/landscape.git
-      - https://github.com/OpenRailAssociation/openrail-dns.git
-      - https://github.com/OpenRailAssociation/openrail-org-config.git
-      - https://github.com/OpenRailAssociation/project-template.git
-      - https://github.com/OpenRailAssociation/purl-tools.git
-      - https://github.com/OpenRailAssociation/renovate-config.git
-      - https://github.com/OpenRailAssociation/technical-committee.git
-      - https://github.com/OpenRailAssociation/website.git
+      - url: https://github.com/OpenRailAssociation/annual-report.git
+        branches: [main]
+      - url: https://github.com/OpenRailAssociation/compliance-assistant.git
+        branches: [main]
+      - url: https://github.com/OpenRailAssociation/FOSDEM.git
+        branches: [main]
+      - url: https://github.com/OpenRailAssociation/github-org-manager.git
+        branches: [main]
+      - url: https://github.com/OpenRailAssociation/landscape.git
+        branches: [main]
+      - url: https://github.com/OpenRailAssociation/openrail-dns.git
+        branches: [main]
+      - url: https://github.com/OpenRailAssociation/openrail-org-config.git
+        branches: [main]
+      - url: https://github.com/OpenRailAssociation/project-template.git
+        branches: [main]
+      - url: https://github.com/OpenRailAssociation/purl-tools.git
+        branches: [main]
+      - url: https://github.com/OpenRailAssociation/renovate-config.git
+        branches: [main]
+      - url: https://github.com/OpenRailAssociation/technical-committee.git
+        branches: [main]
+      - url: https://github.com/OpenRailAssociation/website.git
+        branches: [main]

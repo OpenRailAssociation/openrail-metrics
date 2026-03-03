@@ -40,17 +40,30 @@ def sync_repo(url: str, cache_dir: Path) -> Path:
     return repo_path
 
 
-def extract_commits(repo_path: Path, from_date: date, to_date: date) -> List[Dict]:
-    """Extract commit data from repository."""
+def extract_commits(repo_path: Path, from_date: date, to_date: date, branches: List[str] = None) -> List[Dict]:
+    """Extract commit data from repository.
+    
+    Args:
+        repo_path: Path to git repository
+        from_date: Start date for commits
+        to_date: End date for commits
+        branches: List of branch names to include (default: all branches)
+    """
     # Format: hash|author_email|commit_date|parent_count
     format_str = '%H|%ae|%cI|%P'
+
+    # Build branch arguments
+    if branches:
+        branch_args = branches
+    else:
+        branch_args = ['--branches']
 
     result = subprocess.run([
         'git', '-C', str(repo_path), 'log',
         f'--since={from_date.isoformat()}',
         f'--until={to_date.isoformat()}',
         f'--pretty=format:{format_str}',
-        '--all'
+        *branch_args
     ], capture_output=True, text=True, check=True)
 
     commits = []
