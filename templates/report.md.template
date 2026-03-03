@@ -2,7 +2,7 @@
 
 **Quarterly Metrics Report - {quarter}**
 
-Scope: {from_date} to {to_date}  
+Scope: {from_date} to {to_date}
 Issue date: {issue_date}
 
 ---
@@ -22,8 +22,6 @@ This section shows metrics for the reporting quarter only.
 **Code-committing Organizations:**
 
 {quarter_orgs_list}
-
-*Some freelancers and individuals have contributed code too, but are not listed as organizations.*
 
 ---
 
