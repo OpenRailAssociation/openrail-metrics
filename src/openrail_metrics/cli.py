@@ -318,13 +318,12 @@ def update_org_map(projects, cache_dir, org_map):
     
     click.echo(f"\nFound {len(email_projects)} unique email addresses across all projects")
     
-    # Read existing file to preserve order and format
+    # Read existing file to preserve format
     with open(org_map, 'r', encoding='utf-8') as f:
         lines = f.readlines()
     
-    # Parse existing entries
-    existing_emails = set()
-    updated_lines = [lines[0]]  # Keep header
+    # Parse all entries (existing and new)
+    all_entries = {}
     
     for line in lines[1:]:
         line = line.strip()
@@ -333,7 +332,6 @@ def update_org_map(projects, cache_dir, org_map):
         
         parts = line.split(';')
         if len(parts) != 3:
-            updated_lines.append(line + '\n')
             continue
         
         committer, projects_str, org = parts
@@ -345,34 +343,34 @@ def update_org_map(projects, cache_dir, org_map):
             email = committer
         
         email = email.lower().strip()
-        existing_emails.add(email)
         
         # Update projects list if email is in our extracted data
         if email in email_projects:
             new_projects = sorted(email_projects[email])
-            updated_line = f"{committer};{','.join(new_projects)};{org}\n"
-            updated_lines.append(updated_line)
+            all_entries[email] = (committer, ','.join(new_projects), org)
         else:
-            updated_lines.append(line + '\n')
+            all_entries[email] = (committer, projects_str, org)
     
     # Add new entries
-    new_emails = set(email_projects.keys()) - existing_emails
+    new_emails = set(email_projects.keys()) - set(all_entries.keys())
     if new_emails:
         click.echo(f"\nAdding {len(new_emails)} new email addresses:")
-        for email in sorted(new_emails):
+        for email in new_emails:
             projects_list = sorted(email_projects[email])
-            new_line = f"{email};{','.join(projects_list)};Unknown\n"
-            updated_lines.append(new_line)
+            all_entries[email] = (email, ','.join(projects_list), 'Unknown')
             click.echo(f"  + {email} ({', '.join(projects_list)})")
     
-    # Write updated file
+    # Write sorted entries
     with open(org_map, 'w', encoding='utf-8') as f:
-        f.writelines(updated_lines)
+        f.write(lines[0])  # Header
+        for email in sorted(all_entries.keys()):
+            committer, projects, org = all_entries[email]
+            f.write(f"{committer};{projects};{org}\n")
     
     click.echo(f"\nOrganization mapping file updated: {org_map}")
-    click.echo(f"  Total entries: {len(existing_emails) + len(new_emails)}")
+    click.echo(f"  Total entries: {len(all_entries)}")
     click.echo(f"  New entries: {len(new_emails)}")
-    click.echo(f"  Updated entries: {len(existing_emails & set(email_projects.keys()))}")
+    click.echo(f"  Updated entries: {len(set(all_entries.keys()) & set(email_projects.keys()) - new_emails)}")
 
 
 if __name__ == '__main__':

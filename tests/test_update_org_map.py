@@ -155,3 +155,60 @@ def test_update_org_map_no_trailing_spaces(tmp_path):
                 projects = parts[1]
                 # Should not have space after comma
                 assert ', ' not in projects, f"Found space after comma in: {projects}"
+
+
+def test_update_org_map_maintains_alphabetical_order(tmp_path):
+    """Test that entries are sorted alphabetically by email."""
+    org_map = tmp_path / "test_mapping.ssv"
+    org_map.write_text(
+        "Committer;Projects;Organization\n"
+        "Zebra User <zebra@example.com>;osrd;SNCF\n"
+        "Alpha User <alpha@example.com>;liblrs;DB\n"
+        "Middle User <middle@example.com>;osrd;SBB\n"
+    )
+    
+    projects_file = tmp_path / "projects.yml"
+    projects_file.write_text(
+        "projects:\n"
+        "  - id: osrd\n"
+        "    name: OSRD\n"
+        "    stage: qualified\n"
+        "    repos: []\n"
+    )
+    
+    report_file = tmp_path / "report.yml"
+    report_file.write_text(
+        "report:\n"
+        "  title: Test\n"
+        "  quarter: 2026Q1\n"
+        "  from: 2025-12-01\n"
+        "  to: 2026-02-28\n"
+        "  issue_date: 2026-03-15\n"
+    )
+    
+    runner = CliRunner()
+    result = runner.invoke(cli, [
+        'update-org-map',
+        '--projects', str(projects_file),
+        '--cache-dir', str(tmp_path / 'cache'),
+        '--org-map', str(org_map)
+    ])
+    
+    assert result.exit_code == 0
+    
+    # Check alphabetical order
+    lines = org_map.read_text().split('\n')
+    emails = []
+    for line in lines[1:]:  # Skip header
+        if line.strip():
+            parts = line.split(';')
+            if len(parts) == 3:
+                committer = parts[0]
+                if '<' in committer:
+                    email = committer.split('<')[1].split('>')[0]
+                else:
+                    email = committer
+                emails.append(email.lower())
+    
+    # Verify emails are sorted
+    assert emails == sorted(emails), f"Emails not sorted: {emails}"
