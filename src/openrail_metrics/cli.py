@@ -168,7 +168,8 @@ def _render_report(projects_path, metrics_data, output_dir):
 @click.option('--cache-dir', type=Path, default=None, help='Repository cache directory (default: repos-cache in repo)')
 @click.option('--output-dir', type=Path, default=None, help='Output directory for report and graphics (default: out in repo)')
 @click.option('--org-map', type=Path, required=True, help='Organization mapping file (SSV format)')
-def all(projects, report, cache_dir, output_dir, org_map):
+@click.option('--skip-sync', is_flag=True, help='Skip repository sync step')
+def all(projects, report, cache_dir, output_dir, org_map, skip_sync):
     """Run complete pipeline: sync → extract → render → pdf. Requires: org-map file."""
     if projects is None:
         projects = get_default_path('projects.yml')
@@ -180,7 +181,10 @@ def all(projects, report, cache_dir, output_dir, org_map):
         output_dir = get_default_path('out')
 
     # Step 1: Sync
-    _sync_repos(projects, cache_dir)
+    if not skip_sync:
+        _sync_repos(projects, cache_dir)
+    else:
+        click.echo("Skipping repository sync...")
 
     # Step 2: Extract and aggregate
     metrics = _extract_metrics(projects, report, cache_dir, org_map, None)
