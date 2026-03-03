@@ -61,6 +61,7 @@ def _extract_metrics(projects_path, report_path, cache_dir, org_map, output_path
     click.echo(f"Extracting commits from {extended_from_date} to {cfg.to_date} (12-month view)")
 
     commit_events = []
+    unmapped_emails = set()
 
     for project in cfg.projects:
         project_id = project['id']
@@ -80,6 +81,9 @@ def _extract_metrics(projects_path, report_path, cache_dir, org_map, output_path
                 committer_id = identity.pseudonymize(canonical)
                 org = attribution.get_organization(commit['email'], project_id, org_mapping)
 
+                if org == "Unknown":
+                    unmapped_emails.add(commit['email'])
+
                 commit_events.append({
                     'project_id': project_id,
                     'repo_url': repo_url,
@@ -90,6 +94,13 @@ def _extract_metrics(projects_path, report_path, cache_dir, org_map, output_path
                 })
 
     click.echo(f"\nTotal commit events: {len(commit_events)}")
+    
+    if unmapped_emails:
+        click.echo(f"\nWarning: {len(unmapped_emails)} email(s) not found in organization mapping:", err=True)
+        for email in sorted(unmapped_emails):
+            click.echo(f"  - {email}", err=True)
+        click.echo(f"These commits will be attributed to 'Unknown' organization.", err=True)
+    
     click.echo("Aggregating metrics...")
     metrics = aggregation.aggregate_metrics(commit_events, cfg.from_date, cfg.to_date)
 

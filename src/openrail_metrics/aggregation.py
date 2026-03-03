@@ -34,8 +34,7 @@ def aggregate_metrics(commit_events: List[Dict], quarter_from_date=None, quarter
     quarter_org_stats = defaultdict(int)
     for event in quarter_commits:
         org = event.get('org', 'Unknown')
-        if org != 'Unknown':
-            quarter_org_stats[org] += 1
+        quarter_org_stats[org] += 1
 
     # Per-project stats (all data)
     project_stats = defaultdict(lambda: {
@@ -59,16 +58,16 @@ def aggregate_metrics(commit_events: List[Dict], quarter_from_date=None, quarter
 
         if org != 'Unknown':
             project_stats[project_id]['orgs'].add(org)
-            project_stats[project_id]['org_commits'][org] += 1
             org_stats[org] += 1
+        
+        project_stats[project_id]['org_commits'][org] += 1
 
         # Monthly breakdown
         month = datetime.fromisoformat(event['date'].replace('Z', '+00:00')).strftime('%Y-%m')
         project_stats[project_id]['monthly'][month] += 1
 
         # Monthly by org
-        if org != 'Unknown':
-            project_stats[project_id]['monthly_by_org'][month][org] += 1
+        project_stats[project_id]['monthly_by_org'][month][org] += 1
 
     # Convert sets to counts and nested dicts to regular dicts
     for project_id in project_stats:
