@@ -42,7 +42,7 @@ def test_update_org_map_adds_new_entries(tmp_path):
     
     runner = CliRunner()
     result = runner.invoke(cli, [
-        'update-org-map',
+        'org-map', 'update',
         '--projects', str(projects_file),
         '--cache-dir', str(tmp_path / 'cache'),
         '--org-map', str(org_map)
@@ -91,7 +91,7 @@ def test_update_org_map_updates_project_lists(tmp_path):
     
     runner = CliRunner()
     result = runner.invoke(cli, [
-        'update-org-map',
+        'org-map', 'update',
         '--projects', str(projects_file),
         '--cache-dir', str(tmp_path / 'cache'),
         '--org-map', str(org_map)
@@ -142,7 +142,7 @@ def test_update_org_map_no_trailing_spaces(tmp_path):
     
     runner = CliRunner()
     result = runner.invoke(cli, [
-        'update-org-map',
+        'org-map', 'update',
         '--projects', str(projects_file),
         '--cache-dir', str(tmp_path / 'cache'),
         '--org-map', str(org_map)
@@ -193,7 +193,7 @@ def test_update_org_map_maintains_alphabetical_order(tmp_path):
     
     runner = CliRunner()
     result = runner.invoke(cli, [
-        'update-org-map',
+        'org-map', 'update',
         '--projects', str(projects_file),
         '--cache-dir', str(tmp_path / 'cache'),
         '--org-map', str(org_map)
@@ -256,7 +256,7 @@ def test_update_org_map_handles_duplicate_emails(tmp_path):
     
     runner = CliRunner()
     result = runner.invoke(cli, [
-        'update-org-map',
+        'org-map', 'update',
         '--projects', str(projects_file),
         '--cache-dir', str(tmp_path / 'cache'),
         '--org-map', str(org_map)
@@ -351,7 +351,7 @@ def test_update_org_map_preserves_all_name_variations(tmp_path):
     
     runner = CliRunner()
     result = runner.invoke(cli, [
-        'update-org-map',
+        'org-map', 'update',
         '--projects', str(projects_file),
         '--cache-dir', str(tmp_path / 'cache'),
         '--org-map', str(org_map)
