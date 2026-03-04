@@ -282,11 +282,17 @@ def pdf(input, output):
         click.echo(f"Error: PDF generation failed: {e}", err=True)
 
 
-@cli.command()
+@cli.group(cls=OrderedGroup)
+def org_map():
+    """Manage organization mapping file."""
+    pass
+
+
+@org_map.command()
 @click.option('--projects', type=Path, default=None, help='Projects configuration file (default: projects.yml in repo)')
 @click.option('--cache-dir', type=Path, default=None, help='Repository cache directory (default: repos-cache in repo)')
 @click.option('--org-map', type=Path, required=True, help='Organization mapping file (SSV format)')
-def update_org_map(projects, cache_dir, org_map):
+def update(projects, cache_dir, org_map):
     """Update organization mapping file with new committers and projects."""
     from datetime import datetime
     from dateutil.relativedelta import relativedelta
@@ -427,7 +433,7 @@ def update_org_map(projects, cache_dir, org_map):
     click.echo(f"  Updated entries: {len(seen_emails & set(email_projects.keys()))}")
 
 
-@cli.command()
+@org_map.command()
 @click.option('--org-map', required=True, type=click.Path(exists=True), help='Path to organization mapping file')
 @click.option('--apply', is_flag=True, help='Apply fixes to update canonical emails in the mapping file')
 def find_duplicates(org_map, apply):
@@ -459,9 +465,9 @@ def find_duplicates(org_map, apply):
             click.echo("=" * 80)
 
 
-@cli.command()
+@org_map.command()
 @click.option('--org-map', required=True, type=click.Path(exists=True), help='Path to organization mapping file')
-def clean_org_map(org_map):
+def clean(org_map):
     """Sort and clean organization mapping file."""
     from . import duplicates
     
