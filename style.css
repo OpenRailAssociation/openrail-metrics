@@ -134,6 +134,11 @@ h2, h3, h4 {
   page-break-after: avoid;
 }
 
+/* Page break utility class */
+.page-break {
+  page-break-before: always;
+}
+
 /* Keep images with their captions */
 figure {
   page-break-inside: avoid;

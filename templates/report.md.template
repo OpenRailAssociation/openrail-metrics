@@ -7,7 +7,7 @@
 Scope: {from_date} to {to_date}
 Issue date: {issue_date}
 
----
+<div class="page-break"></div>
 
 ## 1. Quarterly Snapshot
 
@@ -27,7 +27,7 @@ This section shows metrics for the reporting quarter only.
 
 *Note: Automated commits (bots) are excluded from the organization list above.*
 
----
+<div class="page-break"></div>
 
 ## 2. Progress Data (12-Month View)
 
@@ -41,7 +41,7 @@ This section shows activity trends over the past 12 months for context.
 
 {activity_heatmap}
 
----
+<div class="page-break"></div>
 
 ## 3. Project Details
 
@@ -58,8 +58,6 @@ Activity trends and organization contributions for each project over the past 12
 ### Administrative Projects
 
 {administrative_projects}
-
----
 
 ## Appendix
 
@@ -79,6 +77,8 @@ This report is generated from Git commit history across all OpenRail project rep
 
 All data is extracted from public Git repositories and aggregated without storing any personally identifiable information in the output reports.
 
+<div class="page-break"></div>
+
 ### B. About OpenRail
 
 The OpenRail Association creates an open, autonomous and collaborative innovation space for the railway sector. Its mission is to promote the development of Open Source software projects in railways, similar to initiatives in telecommunications, automotive, and energy sectors.
@@ -94,8 +94,6 @@ OpenRail members include major railway organizations such as UIC, Deutsche Bahn,
 **Email:** contact@openrailassociation.org
 
 **GitHub:** [https://github.com/OpenRailAssociation](https://github.com/OpenRailAssociation)
-
----
 
 ### License
 
