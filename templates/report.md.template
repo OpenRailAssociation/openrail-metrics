@@ -26,7 +26,7 @@ This section shows metrics for the reporting quarter only.
 
 {quarter_orgs_list}
 
-*Note: Automated commits (bots) are excluded from the organization list above.*
+*Note: There are commits coming from automation for CI, version updates and similar tasks. These are marked as Bot in the diagrams.*
 
 <div class="page-break"></div>
 
