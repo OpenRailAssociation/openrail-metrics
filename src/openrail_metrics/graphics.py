@@ -6,6 +6,18 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 from typing import Dict
 import numpy as np
+import hashlib
+
+
+def get_org_color(org_name: str, org_colors: Dict[str, str] = None):
+    """Get consistent color for an organization based on its name."""
+    if org_colors and org_name in org_colors:
+        return org_colors[org_name]
+    
+    # Fallback: use hash to get consistent color from tab10 palette
+    hash_val = int(hashlib.md5(org_name.encode()).hexdigest()[:8], 16)
+    colors = plt.cm.tab10.colors
+    return colors[hash_val % len(colors)]
 
 
 def generate_monthly_chart(metrics: Dict, output_path: Path):
@@ -185,7 +197,7 @@ def generate_project_monthly_chart(project_id: str, project_name: str, metrics: 
     plt.close()
 
 
-def generate_project_org_stacked_chart(project_id: str, project_name: str, metrics: Dict, output_path: Path, months: int = 12):
+def generate_project_org_stacked_chart(project_id: str, project_name: str, metrics: Dict, output_path: Path, months: int = 12, org_colors: Dict[str, str] = None):
     """Generate stacked bar chart showing monthly activity by organization for a project."""
     from datetime import datetime
     from dateutil.relativedelta import relativedelta
@@ -242,8 +254,8 @@ def generate_project_org_stacked_chart(project_id: str, project_name: str, metri
     # Create stacked bar chart
     fig, ax = plt.subplots(figsize=(10, 5))
 
-    # Use different colors for each organization
-    colors = plt.cm.Set3(np.linspace(0, 1, len(org_list)))
+    # Use consistent colors for each organization
+    colors = [get_org_color(org, org_colors) for org in org_list]
 
     bottom = np.zeros(len(month_list))
     for i, org in enumerate(org_list):
@@ -260,7 +272,7 @@ def generate_project_org_stacked_chart(project_id: str, project_name: str, metri
     plt.close()
 
 
-def generate_org_pie_chart(metrics: Dict, output_path: Path, quarter_only: bool = False):
+def generate_org_pie_chart(metrics: Dict, output_path: Path, quarter_only: bool = False, org_colors: Dict[str, str] = None):
     """Generate organization distribution pie chart.
 
     Args:
@@ -280,9 +292,10 @@ def generate_org_pie_chart(metrics: Dict, output_path: Path, quarter_only: bool 
 
     labels = list(orgs.keys())
     sizes = list(orgs.values())
+    colors = [get_org_color(label, org_colors) for label in labels]
 
     plt.figure(figsize=(4, 4))
-    plt.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90, textprops={'fontsize': 9})
+    plt.pie(sizes, labels=labels, colors=colors, autopct='%1.1f%%', startangle=90, textprops={'fontsize': 9})
     plt.title(title, fontsize=11, pad=20)
     plt.axis('equal')
     plt.tight_layout(pad=1.5)

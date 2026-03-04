@@ -87,3 +87,12 @@ projects:
         branches: [main]
       - url: https://github.com/OpenRailAssociation/website.git
         branches: [main]
+
+# Organization colors for charts
+org_colors:
+  "SNCF": "#812B6D"
+  "DB": "#EC0016"
+  "Deutsche Bahn": "#EC0016"
+  "SBB": "#C8102E"
+  "Bot": "#7F8C8D"
+  "Unknown": "#D5DBDB"

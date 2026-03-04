@@ -146,7 +146,7 @@ def _render_report(projects_path, metrics_data, output_dir):
     graphics.generate_project_chart(metrics_data, cfg.projects, graphics_dir / 'project_distribution.png')
 
     if metrics_data.get('quarter_org_stats'):
-        graphics.generate_org_pie_chart(metrics_data, graphics_dir / 'quarter_org_distribution.png', quarter_only=True)
+        graphics.generate_org_pie_chart(metrics_data, graphics_dir / 'quarter_org_distribution.png', quarter_only=True, org_colors=cfg.org_colors)
 
     for project in cfg.projects:
         project_id = project['id']
@@ -159,7 +159,7 @@ def _render_report(projects_path, metrics_data, output_dir):
             )
             graphics.generate_project_org_stacked_chart(
                 project_id, project['name'], metrics_data,
-                graphics_dir / f'{project_id}_trend.png', months=12
+                graphics_dir / f'{project_id}_trend.png', months=12, org_colors=cfg.org_colors
             )
 
     click.echo("Rendering report...")
