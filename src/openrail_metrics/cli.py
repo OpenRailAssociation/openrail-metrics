@@ -427,5 +427,48 @@ def update_org_map(projects, cache_dir, org_map):
     click.echo(f"  Updated entries: {len(seen_emails & set(email_projects.keys()))}")
 
 
+@cli.command()
+@click.option('--org-map', required=True, type=click.Path(exists=True), help='Path to organization mapping file')
+@click.option('--apply', is_flag=True, help='Apply fixes to update canonical emails in the mapping file')
+def find_duplicates(org_map, apply):
+    """Find potential duplicate identities in organization mapping file."""
+    from . import duplicates
+    
+    click.echo(f"Analyzing {org_map}...")
+    entries = duplicates.load_mapping(org_map)
+    click.echo(f"Loaded {len(entries)} entries\n")
+    
+    dups = duplicates.find_duplicates(entries)
+    
+    if apply:
+        click.echo("Applying canonical email fixes...\n")
+        
+        # Show what will be changed
+        for norm_name, group in sorted(dups['by_name_diff_email'].items()):
+            all_emails = [e['email'] for e in group]
+            best = duplicates.choose_canonical(all_emails)
+            click.echo(f"{norm_name}: choosing '{best}' as canonical")
+        
+        changes = duplicates.apply_canonical_fixes(org_map, dups)
+        click.echo(f"\n✓ Updated {changes} entries in {org_map}")
+    else:
+        duplicates.print_duplicates(dups)
+        if dups['by_name_diff_email']:
+            click.echo("\n" + "=" * 80)
+            click.echo("Run with --apply to automatically fix duplicate canonical emails")
+            click.echo("=" * 80)
+
+
+@cli.command()
+@click.option('--org-map', required=True, type=click.Path(exists=True), help='Path to organization mapping file')
+def clean_org_map(org_map):
+    """Sort and clean organization mapping file."""
+    from . import duplicates
+    
+    click.echo(f"Cleaning {org_map}...")
+    count = duplicates.sort_org_mapping(org_map)
+    click.echo(f"✓ Sorted {count} entries by canonical email")
+
+
 if __name__ == '__main__':
     cli()
