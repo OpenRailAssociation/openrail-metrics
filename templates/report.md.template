@@ -1,11 +1,12 @@
-# The State of OpenRail
+<img src="openrail-logo.png" class="openrail-logo" alt="OpenRail Logo" />
 
-![OpenRail Association](openrail-logo.png)
+# The State of OpenRail
 
 **Quarterly Metrics Report - {quarter}**
 
-Scope: {from_date} to {to_date}
-Issue date: {issue_date}
+_Scope: {from_date} to {to_date}_
+
+_Issue date: {issue_date}_
 
 <div class="page-break"></div>
 
@@ -95,8 +96,8 @@ OpenRail members include major railway organizations such as UIC, Deutsche Bahn,
 
 **GitHub:** [https://github.com/OpenRailAssociation](https://github.com/OpenRailAssociation)
 
-### License
+### D. License
 
-![CC BY-SA 4.0](https://i.creativecommons.org/l/by-sa/4.0/88x31.png)
+<img src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" alt="CC BY-SA 4.0" class="cc-license" />
 
 This report is licensed under [Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/).

@@ -59,7 +59,7 @@ h1 {
   font-size: 24pt;
   font-weight: 700;
   color: var(--heading-color);
-  margin-top: 0;
+  margin-top: 8em;
   margin-bottom: 0.5em;
   border-bottom: 3px solid var(--primary-color);
   padding-bottom: 0.3em;
@@ -121,6 +121,18 @@ img {
   display: block;
   margin: 1em auto;
   page-break-inside: avoid;
+}
+
+/* OpenRail logo styling */
+img.openrail-logo {
+  max-width: 150px;
+  margin: 0 0 1em auto;
+}
+
+/* CC license logo styling */
+img.cc-license {
+  float: left;
+  margin: 0 1em 0.5em 0;
 }
 
 /* Make quarterly snapshot pie chart smaller */

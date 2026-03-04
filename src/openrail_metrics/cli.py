@@ -200,7 +200,8 @@ def all(projects, report, cache_dir, output_dir, org_map, skip_sync):
         click.echo("Skipping repository sync...")
 
     # Step 2: Extract and aggregate
-    metrics = _extract_metrics(projects, report, cache_dir, org_map, None)
+    metrics_output = output_dir / 'metrics.json'
+    metrics = _extract_metrics(projects, report, cache_dir, org_map, metrics_output)
 
     # Step 3: Render report
     _render_report(projects, metrics, output_dir)
@@ -251,7 +252,7 @@ def extract(projects, report, cache_dir, org_map, output):
 
 @cli.command()
 @click.option('--projects', type=Path, default=None, help='Projects configuration file (default: projects.yml in repo)')
-@click.option('--metrics', type=Path, default='metrics.json', help='Input metrics JSON file')
+@click.option('--metrics', type=Path, default=None, help='Input metrics JSON file (default: out/metrics.json in repo)')
 @click.option('--output-dir', type=Path, default=None, help='Output directory for report and graphics (default: out in repo)')
 def render(projects, metrics, output_dir):
     """Generate graphics and markdown report. Requires: metrics.json."""
@@ -259,6 +260,8 @@ def render(projects, metrics, output_dir):
 
     if projects is None:
         projects = get_default_path('projects.yml')
+    if metrics is None:
+        metrics = get_default_path('out/metrics.json')
     if output_dir is None:
         output_dir = get_default_path('out')
 
@@ -270,10 +273,15 @@ def render(projects, metrics, output_dir):
 
 
 @cli.command()
-@click.option('--input', type=Path, default='out/report.md', help='Input markdown report file')
-@click.option('--output', type=Path, default='out/report.pdf', help='Output PDF file')
+@click.option('--input', type=Path, default=None, help='Input markdown report file')
+@click.option('--output', type=Path, default=None, help='Output PDF file')
 def pdf(input, output):
     """Generate PDF from markdown report. Requires: report.md."""
+    if input is None:
+        input = get_default_path('out/report.md')
+    if output is None:
+        output = get_default_path('out/report.pdf')
+    
     click.echo(f"Generating PDF from {input}...")
     try:
         pdf_module.generate_pdf(input, output)
