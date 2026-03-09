@@ -27,9 +27,7 @@ pip install -e .
 Generate a quarterly report:
 
 ```bash
-openrail-metrics all \
-  --projects projects.yml \
-  --report report.yml \
+openrail-metrics all
   --org-map /path/to/openrail_committers.ssv
 ```
 
@@ -40,30 +38,12 @@ Output will be generated in the `out/` directory:
 
 ## Report Structure
 
-The generated report has three sections:
-
-### 1. Quarterly Snapshot
-Metrics for the reporting quarter only (3 months):
-- Active committers this quarter
-- Human commits this quarter
-- Contributing organizations this quarter
-- Organization distribution pie chart
-
-### 2. Progress Data (12-Month View)
-Activity trends over the past 12 months:
-- Total committers, commits, organizations
-- Activity heatmap showing all projects
-- Shows patterns and trends
-
-### 3. Project Details
-Per-project statistics and visualizations:
-- 12-month activity trends
-- Stacked bar charts showing contributions by organization
-- Grouped by project stage (Qualified, Onboarded)
+The overall structure of the generated report is defined in the `templates/report.md.template` template file. The structure of the project section is defined in `templates/project.md.template`.
 
 ## Configuration Files
 
 ### projects.yml
+
 Defines OpenRail projects and their repositories:
 
 ```yaml
@@ -76,6 +56,7 @@ projects:
 ```
 
 ### report.yml
+
 Defines the reporting period:
 
 ```yaml
@@ -88,12 +69,15 @@ report:
 ```
 
 ### Organization Mapping (SSV)
+
 External file mapping committers to organizations:
 
 ```
-Committer;Projects;Organization
-Name <email@example.com>;osrd,liblrs;Organization Name
+Committer;Projects;Canonical;Organization
+Name <email@example.com>;osrd,liblrs;email@example.com,Organization Name
 ```
+
+Its format is defined in `docs/org-mapping-format.md`.
 
 ## Data Privacy
 
@@ -113,9 +97,9 @@ pytest tests/ -v
 
 ## Architecture
 
-See [architecture.md](architecture.md) for detailed implementation notes.
+See [docs/architecture.md](architecture.md) for detailed implementation notes.
 
-See [design.md](design.md) for the original design specification.
+See [docs/design.md](design.md) for the original design specification.
 
 # License
 

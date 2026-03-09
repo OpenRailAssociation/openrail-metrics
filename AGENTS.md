@@ -9,6 +9,10 @@ When working on this project, follow these guidelines:
 3. **Write tests first** - For new commands or features, add unit tests instead of manual testing
 4. **Be concise** - Keep commit messages short and focused
 
+## Specifications
+
+Specifications for work to be done are kept at `specs`. The contain requirements specified by the user.
+
 ## Testing approach
 
 - Use unit tests in `tests/` directory
@@ -16,5 +20,5 @@ When working on this project, follow these guidelines:
 
 ## Documentation
 
-- Update `architecture.md` for fundamental design decisions
+- Update `docs/architecture.md` for fundamental design decisions
 - Update `tasks/lessons.md` when corrected on design or implementation choices
