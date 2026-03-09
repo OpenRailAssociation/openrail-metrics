@@ -10,7 +10,7 @@ def generate_pdf(markdown_path: Path, output_path: Path):
     working_dir = markdown_path.parent
 
     # Find stylesheet (in project root)
-    stylesheet = Path(__file__).parent.parent.parent / 'style.css'
+    stylesheet = Path(__file__).parent.parent.parent / 'assets' / 'style.css'
 
     cmd = [
         'pandoc',
