@@ -10,7 +10,7 @@ def load_template(template_name: str) -> str:
     return template_path.read_text()
 
 
-def render_report(config, metrics: Dict, projects: List[Dict], output_path: Path, graphics_dir: Path = None):
+def render_report(config, metrics: Dict, projects: List[Dict], output_path: Path, graphics_dir: Path = None, twelve_month_from: str = None):
     """Generate Markdown report using template."""
 
     report = config.report
@@ -62,6 +62,8 @@ def render_report(config, metrics: Dict, projects: List[Dict], output_path: Path
         from_date=report['from'],
         to_date=report['to'],
         issue_date=report['issue_date'],
+        twelve_month_from=twelve_month_from if twelve_month_from else report['from'],
+        twelve_month_to=report['to'],
         quarter_contributors=metrics.get('quarter_contributors', 0),
         quarter_commits=metrics.get('quarter_commits', 0),
         quarter_orgs=metrics.get('quarter_orgs', 0),

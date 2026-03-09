@@ -52,7 +52,9 @@ def _extract_metrics(projects_path, report_path, cache_dir, org_map, output_path
     click.echo("Loading configuration...")
     cfg = config.load_config(projects_path, report_path)
 
-    extended_from_date = cfg.from_date - relativedelta(months=9)
+    # Calculate 12-month period: go back 11 months from to_date to get 12 months total
+    # Example: to_date = 2026-02-28 -> 12 months = 2025-03-01 to 2026-02-28
+    extended_from_date = cfg.to_date.replace(day=1) - relativedelta(months=11)
 
     org_mapping = None
     email_to_canonical = None
@@ -133,9 +135,13 @@ def _extract_metrics(projects_path, report_path, cache_dir, org_map, output_path
 def _render_report(projects_path, metrics_data, output_dir):
     """Internal function to render report."""
     import click
+    from dateutil.relativedelta import relativedelta
 
     click.echo("Loading configuration...")
     cfg = config.load_config(projects_path, get_default_path('report.yml'))
+
+    # Calculate 12-month period from to_date (month-based)
+    twelve_month_from = cfg.to_date.replace(day=1) - relativedelta(months=11)
 
     click.echo("Generating graphics...")
     graphics_dir = output_dir / 'graphics'
@@ -164,7 +170,7 @@ def _render_report(projects_path, metrics_data, output_dir):
 
     click.echo("Rendering report...")
     report_path = output_dir / 'report.md'
-    rendering.render_report(cfg, metrics_data, cfg.projects, report_path, graphics_dir)
+    rendering.render_report(cfg, metrics_data, cfg.projects, report_path, graphics_dir, str(twelve_month_from))
 
     from pathlib import Path as PathLib
     logo_src = PathLib(__file__).parent.parent.parent / 'assets' / 'openrail-logo.png'
