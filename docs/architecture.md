@@ -90,9 +90,36 @@ Render → report.md (3 sections) → Pandoc → report.pdf
 - Extract 12 months of data (9 months before quarter + 3 quarter months)
 
 ### Time Windows
-- **Quarterly snapshot**: Metrics for the 3-month reporting period only
-- **Progress data**: 12-month rolling window for trends and context
-- **Per-project charts**: 12-month view with consistent date ranges across all projects
+
+**Quarter Definition:**
+A quarter is a 3-month reporting period defined in `report.yml`:
+- `quarter`: Label (e.g., "2026Q1")
+- `from`: Start date of the quarter (e.g., 2025-12-01)
+- `to`: End date of the quarter (e.g., 2026-02-28)
+
+The quarter dates define the scope of the report shown on the title page.
+
+**12-Month Period Calculation:**
+The 12-month period is calculated from the quarter's end date (`to`) going back 12 months on a month basis:
+- Start: First day of the month 11 months before `to` month
+- End: Last day of `to` month
+
+Example for Q1 2026 (2025-12-01 to 2026-02-28):
+- Quarter scope: December 2025, January 2026, February 2026
+- 12-month period: 2025-03-01 to 2026-02-28
+  - Covers months: 2025-03, 2025-04, ..., 2026-02 (12 complete months)
+  - Calculation: `to_date.replace(day=1) - relativedelta(months=11)`
+
+**Data Collection:**
+- Git commits are extracted for the entire 12-month period
+- Metrics are aggregated separately for:
+  - **Quarterly snapshot**: Only commits within the quarter dates (from to to)
+  - **Progress data**: All commits within the 12-month period
+
+**Rationale:**
+- Month-based calculation (not day-based) ensures complete months are included
+- Counting back from the quarter end date ensures the 12-month view always includes the current quarter
+- This provides context for quarterly metrics while maintaining focus on the reporting period
 
 ### Aggregation Metrics
 
