@@ -13,8 +13,8 @@ class OrderedGroup(click.Group):
 
 
 def get_default_path(filename):
-    """Get default path for config files in repo root."""
-    return Path(__file__).parent.parent.parent / filename
+    """Get default path for config files in config directory."""
+    return Path(__file__).parent.parent.parent / 'config' / filename
 
 
 @click.group(cls=OrderedGroup)
@@ -182,8 +182,8 @@ def _render_report(projects_path, metrics_data, output_dir):
 
 
 @cli.command()
-@click.option('--projects', type=Path, default=None, help='Projects configuration file (default: projects.yml in repo)')
-@click.option('--report', type=Path, default=None, help='Report configuration file (default: report.yml in repo)')
+@click.option('--projects', type=Path, default=None, help='Projects configuration file (default: config/projects.yml)')
+@click.option('--report', type=Path, default=None, help='Report configuration file (default: config/report.yml)')
 @click.option('--cache-dir', type=Path, default=None, help='Repository cache directory (default: repos-cache in repo)')
 @click.option('--output-dir', type=Path, default=None, help='Output directory for report and graphics (default: out in repo)')
 @click.option('--org-map', type=Path, required=True, help='Organization mapping file (SSV format)')
@@ -224,7 +224,7 @@ def all(projects, report, cache_dir, output_dir, org_map, skip_sync):
 
 
 @cli.command()
-@click.option('--projects', type=Path, default=None, help='Projects configuration file (default: projects.yml in repo)')
+@click.option('--projects', type=Path, default=None, help='Projects configuration file (default: config/projects.yml)')
 @click.option('--cache-dir', type=Path, default=None, help='Repository cache directory (default: repos-cache in repo)')
 def sync(projects, cache_dir):
     """Sync all project repositories to local cache."""
@@ -237,8 +237,8 @@ def sync(projects, cache_dir):
 
 
 @cli.command()
-@click.option('--projects', type=Path, default=None, help='Projects configuration file (default: projects.yml in repo)')
-@click.option('--report', type=Path, default=None, help='Report configuration file (default: report.yml in repo)')
+@click.option('--projects', type=Path, default=None, help='Projects configuration file (default: config/projects.yml)')
+@click.option('--report', type=Path, default=None, help='Report configuration file (default: config/report.yml)')
 @click.option('--cache-dir', type=Path, default=None, help='Repository cache directory (default: repos-cache in repo)')
 @click.option('--org-map', type=Path, required=True, help='Organization mapping file (SSV format)')
 @click.option('--output', type=Path, default=None, help='Output metrics JSON file')
@@ -257,7 +257,7 @@ def extract(projects, report, cache_dir, org_map, output):
 
 
 @cli.command()
-@click.option('--projects', type=Path, default=None, help='Projects configuration file (default: projects.yml in repo)')
+@click.option('--projects', type=Path, default=None, help='Projects configuration file (default: config/projects.yml)')
 @click.option('--metrics', type=Path, default=None, help='Input metrics JSON file (default: out/metrics.json in repo)')
 @click.option('--output-dir', type=Path, default=None, help='Output directory for report and graphics (default: out in repo)')
 def render(projects, metrics, output_dir):
@@ -303,7 +303,7 @@ def org_map():
 
 
 @org_map.command()
-@click.option('--projects', type=Path, default=None, help='Projects configuration file (default: projects.yml in repo)')
+@click.option('--projects', type=Path, default=None, help='Projects configuration file (default: config/projects.yml)')
 @click.option('--cache-dir', type=Path, default=None, help='Repository cache directory (default: repos-cache in repo)')
 @click.option('--org-map', type=Path, required=True, help='Organization mapping file (SSV format)')
 def update(projects, cache_dir, org_map):

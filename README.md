@@ -42,7 +42,7 @@ The overall structure of the generated report is defined in the `templates/repor
 
 ## Configuration Files
 
-### projects.yml
+### config/projects.yml
 
 Defines OpenRail projects and their repositories:
 
@@ -55,7 +55,7 @@ projects:
       - https://github.com/OpenRailAssociation/osrd.git
 ```
 
-### report.yml
+### config/report.yml
 
 Defines the reporting period:
 
