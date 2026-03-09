@@ -97,10 +97,18 @@ pytest tests/ -v
 
 ## Architecture
 
-See [docs/architecture.md](architecture.md) for detailed implementation notes.
+See [docs/architecture.md](docs/architecture.md) for detailed implementation notes.
 
-See [docs/design.md](design.md) for the original design specification.
+See [docs/design.md](docs/design.md) for the original design specification.
 
-# License
+## Contributing
 
-This repo is licensed under Apache-2.0.
+Contributions are welcome. See the documentation at [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
+
+## License
+
+This project is licensed under the [Apache License 2.0](LICENSE).
+
+## Code of Conduct
+
+We follow the [code of conduct](CODE_OF_CONDUCT.md) of the OpenRail Association.
