@@ -99,6 +99,9 @@ A quarter is a 3-month reporting period defined in `report.yml`:
 
 The quarter dates define the scope of the report shown on the title page.
 
+**Quarter Alignment:**
+Quarters are offset from calendar quarters to allow report generation in the final month. For example, Q1 2026 covers December 2025 through February 2026, enabling the report to be generated and published in March 2026. This ensures complete data collection for the reporting period before publication.
+
 **12-Month Period Calculation:**
 The 12-month period is calculated from the quarter's end date (`to`) going back 12 months on a month basis:
 - Start: First day of the month 11 months before `to` month
