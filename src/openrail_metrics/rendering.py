@@ -27,9 +27,11 @@ def render_report(config, metrics: Dict, projects: List[Dict], output_path: Path
     quarter_orgs_list = ""
     quarter_orgs_inline = ""
     if metrics.get('quarter_org_stats'):
-        orgs = sorted(org for org in metrics['quarter_org_stats'].keys() if org != 'Bot')
+        orgs = sorted(org for org in metrics['quarter_org_stats'].keys() if org not in ('Bot', 'Independent', 'Unknown'))
         quarter_orgs_list = "\n".join(f"- {org}" for org in orgs) + "\n"
         quarter_orgs_inline = ", ".join(orgs)
+        if 'Independent' in metrics['quarter_org_stats']:
+            quarter_orgs_inline += ". A small number of commits were contributed by independent developers."
 
     # Prepare activity heatmap
     activity_heatmap = ""
