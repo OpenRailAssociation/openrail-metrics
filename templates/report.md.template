@@ -8,11 +8,17 @@ _Scope: {from_date} to {to_date}_
 
 _Issue date: {issue_date}_
 
+<br/><br/>
+
+{toc}
+
 <div class="page-break"></div>
 
-## 1. Quarterly Snapshot
+## Executive Summary
 
-This section shows metrics for the reporting quarter only.
+{intro}
+
+## 1. Quarterly Snapshot
 
 **Summary Statistics ({from_date} to {to_date}):**
 
@@ -22,11 +28,9 @@ This section shows metrics for the reporting quarter only.
 
 {quarter_org_chart}
 
-**Code-committing Organizations:**
+**Code-committing organizations:** {quarter_orgs_inline}
 
-{quarter_orgs_list}
-
-*Note: There are commits coming from automation for CI, version updates and similar tasks. These are marked as Bot in the diagrams.*
+*Note: Commits from automation (CI, version updates) are marked as Bot in the diagrams.*
 
 <div class="page-break"></div>
 

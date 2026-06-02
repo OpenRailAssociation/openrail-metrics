@@ -1,6 +1,6 @@
 report:
   title: "OpenRail Metrics Report"
-  quarter: "2026Q1"
-  from: 2025-12-01
-  to: 2026-02-28
-  issue_date: 2026-03-15
+  quarter: "2026Q2"
+  from: 2026-03-01
+  to: 2026-05-31
+  issue_date: 2026-06-05

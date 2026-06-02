@@ -25,10 +25,11 @@ def render_report(config, metrics: Dict, projects: List[Dict], output_path: Path
 
     # Prepare quarter orgs list (exclude Bot from display)
     quarter_orgs_list = ""
+    quarter_orgs_inline = ""
     if metrics.get('quarter_org_stats'):
-        for org in sorted(metrics['quarter_org_stats'].keys()):
-            if org != 'Bot':
-                quarter_orgs_list += f"- {org}\n"
+        orgs = sorted(org for org in metrics['quarter_org_stats'].keys() if org != 'Bot')
+        quarter_orgs_list = "\n".join(f"- {org}" for org in orgs) + "\n"
+        quarter_orgs_inline = ", ".join(orgs)
 
     # Prepare activity heatmap
     activity_heatmap = ""
@@ -56,12 +57,35 @@ def render_report(config, metrics: Dict, projects: List[Dict], output_path: Path
     for project in stages['administrative']:
         administrative_projects += render_project(project, metrics, graphics_dir)
 
+    # Load intro text (optional, from config/intro.md)
+    intro_path = Path(__file__).parent.parent.parent / 'config' / 'intro.md'
+    intro = intro_path.read_text().strip() if intro_path.exists() else ""
+
+    # Generate table of contents
+    toc_lines = [
+        "**Contents:**\n",
+        "- [Executive Summary](#executive-summary)",
+        "- [Quarterly Snapshot](#quarterly-snapshot)",
+        "- [Progress Data (12-Month View)](#progress-data-12-month-view)",
+        "- [Project Details](#project-details)",
+    ]
+    for project in projects:
+        stage = project['stage']
+        if stage != 'administrative':
+            anchor = project['name'].lower().replace(' ', '-').replace('(', '').replace(')', '')
+            toc_lines.append(f"  - [{project['name']}](#{anchor})")
+    toc_lines.append("  - [Administrative Projects](#administrative-projects)")
+    toc_lines.append("- [Appendix](#appendix)")
+    toc = "\n".join(toc_lines)
+
     # Fill template
     content = template.format(
         quarter=report['quarter'],
         from_date=report['from'],
         to_date=report['to'],
         issue_date=report['issue_date'],
+        toc=toc,
+        intro=intro,
         twelve_month_from=twelve_month_from if twelve_month_from else report['from'],
         twelve_month_to=report['to'],
         quarter_contributors=metrics.get('quarter_contributors', 0),
@@ -69,6 +93,7 @@ def render_report(config, metrics: Dict, projects: List[Dict], output_path: Path
         quarter_orgs=metrics.get('quarter_orgs', 0),
         quarter_org_chart=quarter_org_chart,
         quarter_orgs_list=quarter_orgs_list,
+        quarter_orgs_inline=quarter_orgs_inline,
         total_contributors=metrics['total_contributors'],
         total_commits=metrics['total_commits'],
         total_orgs=metrics.get('total_orgs', 0),

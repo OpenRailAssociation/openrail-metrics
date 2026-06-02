@@ -13,8 +13,9 @@ class OrderedGroup(click.Group):
 
 
 def get_default_path(filename):
-    """Get default path for config files in config directory."""
-    return Path(__file__).parent.parent.parent / 'config' / filename
+    """Get default path for config files or directories relative to project root."""
+    project_root = Path(__file__).parent.parent.parent
+    return project_root / filename
 
 
 @click.group(cls=OrderedGroup)
@@ -26,7 +27,7 @@ def cli():
 def _sync_repos(projects_path, cache_dir):
     """Internal function to sync repositories."""
     import click
-    cfg = config.load_config(projects_path, get_default_path('report.yml'))
+    cfg = config.load_config(projects_path, get_default_path('config/report.yml'))
 
     click.echo(f"Syncing {len(cfg.projects)} projects...")
 
@@ -138,7 +139,7 @@ def _render_report(projects_path, metrics_data, output_dir):
     from dateutil.relativedelta import relativedelta
 
     click.echo("Loading configuration...")
-    cfg = config.load_config(projects_path, get_default_path('report.yml'))
+    cfg = config.load_config(projects_path, get_default_path('config/report.yml'))
 
     # Calculate 12-month period from to_date (month-based)
     twelve_month_from = cfg.to_date.replace(day=1) - relativedelta(months=11)
@@ -191,9 +192,9 @@ def _render_report(projects_path, metrics_data, output_dir):
 def all(projects, report, cache_dir, output_dir, org_map, skip_sync):
     """Run complete pipeline: sync → extract → render → pdf. Requires: org-map file."""
     if projects is None:
-        projects = get_default_path('projects.yml')
+        projects = get_default_path('config/projects.yml')
     if report is None:
-        report = get_default_path('report.yml')
+        report = get_default_path('config/report.yml')
     if cache_dir is None:
         cache_dir = get_default_path('repos-cache')
     if output_dir is None:
@@ -229,7 +230,7 @@ def all(projects, report, cache_dir, output_dir, org_map, skip_sync):
 def sync(projects, cache_dir):
     """Sync all project repositories to local cache."""
     if projects is None:
-        projects = get_default_path('projects.yml')
+        projects = get_default_path('config/projects.yml')
     if cache_dir is None:
         cache_dir = get_default_path('repos-cache')
 
@@ -245,9 +246,9 @@ def sync(projects, cache_dir):
 def extract(projects, report, cache_dir, org_map, output):
     """Extract commits and aggregate metrics. Requires: synced repos, org-map file."""
     if projects is None:
-        projects = get_default_path('projects.yml')
+        projects = get_default_path('config/projects.yml')
     if report is None:
-        report = get_default_path('report.yml')
+        report = get_default_path('config/report.yml')
     if cache_dir is None:
         cache_dir = get_default_path('repos-cache')
     if output is None:
@@ -265,7 +266,7 @@ def render(projects, metrics, output_dir):
     import json
 
     if projects is None:
-        projects = get_default_path('projects.yml')
+        projects = get_default_path('config/projects.yml')
     if metrics is None:
         metrics = get_default_path('out/metrics.json')
     if output_dir is None:
@@ -313,12 +314,12 @@ def update(projects, cache_dir, org_map):
     from collections import defaultdict
     
     if projects is None:
-        projects = get_default_path('projects.yml')
+        projects = get_default_path('config/projects.yml')
     if cache_dir is None:
         cache_dir = get_default_path('repos-cache')
     
     click.echo("Loading configuration...")
-    cfg = config.load_config(projects, get_default_path('report.yml'))
+    cfg = config.load_config(projects, get_default_path('config/report.yml'))
     
     # Don't load via attribution.load_org_mapping since it validates
     # We're updating the file, so conflicts are expected

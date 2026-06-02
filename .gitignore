@@ -1,7 +1,7 @@
-repos-cache/
-out/
+/repos-cache/
+/out/
+/venv/
 *.pyc
 __pycache__/
 *.egg-info/
 .pytest_cache/
-tasks

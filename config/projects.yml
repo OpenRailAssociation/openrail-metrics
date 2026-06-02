@@ -7,16 +7,10 @@ projects:
     repos:
       - url: https://github.com/OpenRailAssociation/osrd.git
         branches: [dev]
-      - url: https://github.com/OpenRailAssociation/osrd-ui.git
-        branches: [dev]
       - url: https://github.com/OpenRailAssociation/osrd-design.git
         branches: [main]
       - url: https://github.com/OpenRailAssociation/osrd-website.git
         branches: [master]
-      - url: https://github.com/OpenRailAssociation/osrd-chart.git
-        branches: [main]
-      - url: https://github.com/OpenRailAssociation/osrd-images.git
-        branches: [main]
 
   # Stage 1 - Onboarded
   - id: rcm-oss
@@ -65,13 +59,23 @@ projects:
     repos:
       - url: https://github.com/OpenRailAssociation/annual-report.git
         branches: [main]
+      - url: https://github.com/OpenRailAssociation/authentik-user-manager.git
+        branches: [main]
       - url: https://github.com/OpenRailAssociation/compliance-assistant.git
         branches: [main]
       - url: https://github.com/OpenRailAssociation/FOSDEM.git
         branches: [main]
       - url: https://github.com/OpenRailAssociation/github-org-manager.git
         branches: [main]
+      - url: https://github.com/OpenRailAssociation/hack4rail-website.git
+        branches: [main]
       - url: https://github.com/OpenRailAssociation/landscape.git
+        branches: [main]
+      - url: https://github.com/OpenRailAssociation/nextcloud-forms-to-tables.git
+        branches: [main]
+      - url: https://github.com/OpenRailAssociation/openrail-ai-toolkit.git
+        branches: [main]
+      - url: https://github.com/OpenRailAssociation/openrail-ansible.git
         branches: [main]
       - url: https://github.com/OpenRailAssociation/openrail-dns.git
         branches: [main]
@@ -85,7 +89,11 @@ projects:
         branches: [main]
       - url: https://github.com/OpenRailAssociation/technical-committee.git
         branches: [main]
+      - url: https://github.com/OpenRailAssociation/web-deployment-action.git
+        branches: [main]
       - url: https://github.com/OpenRailAssociation/website.git
+        branches: [main]
+      - url: https://github.com/OpenRailAssociation/wg-project-scouting.git
         branches: [main]
 
 # Organization colors for charts
@@ -94,5 +102,6 @@ org_colors:
   "DB": "#EC0016"
   "Deutsche Bahn": "#EC0016"
   "SBB": "#C8102E"
+  "ÖBB": "#1A4D8F"
   "Bot": "#7F8C8D"
   "Unknown": "#D5DBDB"
