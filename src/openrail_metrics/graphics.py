@@ -293,11 +293,26 @@ def generate_org_pie_chart(metrics: Dict, output_path: Path, quarter_only: bool 
     labels = list(orgs.keys())
     sizes = list(orgs.values())
     colors = [get_org_color(label, org_colors) for label in labels]
+    total = sum(sizes) or 1
 
-    plt.figure(figsize=(4, 4))
-    plt.pie(sizes, labels=labels, colors=colors, autopct='%1.1f%%', startangle=90, textprops={'fontsize': 9})
-    plt.title(title, fontsize=11, pad=20)
-    plt.axis('equal')
+    # Show a percentage on a slice only when it is large enough to be legible;
+    # tiny slices would otherwise overlap their neighbours' labels.
+    def autopct(pct):
+        return f'{pct:.1f}%' if pct >= 3 else ''
+
+    fig, ax = plt.subplots(figsize=(5.2, 4))
+    wedges, _texts, _autotexts = ax.pie(
+        sizes, colors=colors, autopct=autopct, startangle=90,
+        pctdistance=0.75, textprops={'fontsize': 9},
+    )
+    ax.axis('equal')
+
+    # Move organization names into a legend so they never collide on the pie.
+    legend_labels = [f'{label} ({size / total * 100:.1f}%)' for label, size in zip(labels, sizes)]
+    ax.legend(wedges, legend_labels, title='Organization',
+              loc='center left', bbox_to_anchor=(1.0, 0.5), fontsize=8, title_fontsize=9)
+
+    ax.set_title(title, fontsize=11, pad=20)
     plt.tight_layout(pad=1.5)
     plt.savefig(output_path, dpi=120, bbox_inches='tight')
     plt.close()
