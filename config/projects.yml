@@ -51,6 +51,14 @@ projects:
       - url: https://github.com/OpenRailAssociation/liblrs.git
         branches: [main]
 
+  - id: msc-viewer
+    name: MscViewer
+    stage: onboarded
+    description: "MscViewer is a toolkit for managing Nokia MSC/MSS (Mobile Switching Center) configurations through a modern web interface. It visualizes configuration hierarchies, relationships, and dependency graphs, renders configurations in geographical context on a map, and includes an AI agent for querying configurations in natural language and generating MSC/MSS commands. It is tailored to railway telecommunication needs such as GSM-R."
+    repos:
+      - url: https://github.com/OpenRailAssociation/msc-viewer.git
+        branches: [main]
+
   # Administrative Projects
   - id: administrative
     name: Administrative Projects
@@ -70,6 +78,8 @@ projects:
       - url: https://github.com/OpenRailAssociation/hack4rail-website.git
         branches: [main]
       - url: https://github.com/OpenRailAssociation/landscape.git
+        branches: [main]
+      - url: https://github.com/OpenRailAssociation/meetup.git
         branches: [main]
       - url: https://github.com/OpenRailAssociation/nextcloud-forms-to-tables.git
         branches: [main]
@@ -103,5 +113,7 @@ org_colors:
   "Deutsche Bahn": "#EC0016"
   "SBB": "#C8102E"
   "ÖBB": "#1A4D8F"
+  "Greenstones": "#7BA67B"
+  "OpenRail": "#37474F"
   "Bot": "#7F8C8D"
   "Unknown": "#D5DBDB"
