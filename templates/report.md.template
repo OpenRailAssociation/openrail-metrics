@@ -18,6 +18,8 @@ _Issue date: {issue_date}_
 
 {intro}
 
+<div class="page-break"></div>
+
 ## 1. Quarterly Snapshot
 
 **Summary Statistics ({from_date} to {to_date}):**
