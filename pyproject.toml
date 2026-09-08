@@ -17,5 +17,10 @@ dependencies = [
 [project.scripts]
 openrail-metrics = "openrail_metrics.cli:cli"
 
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+]
+
 [tool.setuptools.packages.find]
 where = ["src"]
