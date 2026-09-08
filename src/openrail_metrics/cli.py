@@ -304,6 +304,94 @@ def org_map():
 
 
 @org_map.command()
+@click.option('--org-map', 'org_map_path', required=True, type=click.Path(exists=True),
+              help='Path to organization mapping file')
+@click.option('--project', 'project_filter', default=None,
+              help='Only show people and counts for identities touching this project ID')
+def show(org_map_path, project_filter):
+    """Show the committer mapping: people, organizations, and unresolved entries."""
+    from . import duplicates
+
+    entries = duplicates.load_mapping(org_map_path)
+
+    # Optional project filter: keep only entries whose project list contains it.
+    def touches_project(entry):
+        projects = [p for p in entry['projects'].split(',') if p]
+        return project_filter in projects
+
+    shown = [e for e in entries if touches_project(e)] if project_filter else entries
+
+    # Group entries into people, keyed by canonical identity.
+    people = {}
+    for entry in shown:
+        canonical = entry['canonical']
+        person = people.setdefault(canonical, {
+            'canonical': canonical,
+            'org': entry['org'],
+            'names': [],
+            'projects': set(),
+            'aliases': 0,
+        })
+        person['aliases'] += 1
+        if entry['name']:
+            person['names'].append(entry['name'])
+        for proj in entry['projects'].split(','):
+            if proj:
+                person['projects'].add(proj)
+
+    def display_name(person):
+        # Best available human name; fall back to the canonical email.
+        return person['names'][0] if person['names'] else person['canonical']
+
+    org_count = len({p['org'] for p in people.values()})
+
+    header = f"Committer mapping: {len(shown)} entries, {len(people)} people, {org_count} organizations"
+    if project_filter:
+        header += f" (project: {project_filter})"
+    click.echo(header)
+    click.echo(f"File: {Path(org_map_path).resolve()}")
+    click.echo()
+
+    # --- People ---
+    click.echo(f"== People ({len(people)}) ==")
+    rows = sorted(
+        people.values(),
+        key=lambda p: (p['org'].lower(), display_name(p).lower()),
+    )
+    name_width = max([len(display_name(p)) for p in rows], default=6)
+    org_width = max([len(p['org']) for p in rows], default=12)
+    org_width = max(org_width, len('Organization'))
+    name_width = max(name_width, len('Person'))
+    click.echo(f"{'Organization':<{org_width}}  {'Person':<{name_width}}  Aliases  Projects")
+    for p in rows:
+        projects = ', '.join(sorted(p['projects'])) or '-'
+        click.echo(f"{p['org']:<{org_width}}  {display_name(p):<{name_width}}  {p['aliases']:>7}  {projects}")
+    click.echo()
+
+    # --- Organizations ---
+    org_people = {}
+    org_entries = {}
+    for p in people.values():
+        org_people[p['org']] = org_people.get(p['org'], 0) + 1
+        org_entries[p['org']] = org_entries.get(p['org'], 0) + p['aliases']
+    click.echo(f"== Organizations ({len(org_people)}) ==")
+    ow = max([len(o) for o in org_people] + [len('Organization')])
+    click.echo(f"{'Organization':<{ow}}  People  Entries")
+    for org in sorted(org_people, key=lambda o: (-org_people[o], o.lower())):
+        click.echo(f"{org:<{ow}}  {org_people[org]:>6}  {org_entries[org]:>7}")
+    click.echo()
+
+    # --- Unresolved ---
+    unresolved = [e for e in shown if e['org'].strip().lower() == 'unknown']
+    click.echo(f"== Unresolved ({len(unresolved)}) ==")
+    if unresolved:
+        for e in unresolved:
+            click.echo(f"  Line {e['line']}: {e['committer']}  (canonical: {e['canonical']})")
+    else:
+        click.echo('No entries with organization "Unknown".')
+
+
+@org_map.command()
 @click.option('--projects', type=Path, default=None, help='Projects configuration file (default: config/projects.yml)')
 @click.option('--cache-dir', type=Path, default=None, help='Repository cache directory (default: repos-cache in repo)')
 @click.option('--org-map', type=Path, required=True, help='Organization mapping file (SSV format)')
