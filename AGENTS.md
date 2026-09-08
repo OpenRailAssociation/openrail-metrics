@@ -12,6 +12,12 @@ When working on this project, follow these guidelines:
 
 Specifications for work to be done are kept at `specs`. The contain requirements specified by the user.
 
+## Playbooks
+
+Step-by-step operating procedures for recurring work live in `playbooks/`. Consult the relevant one before the matching task:
+
+- `playbooks/verifying-the-committer-mapping.md` - confirm the committer mapping is complete and consistent before generating a report (README step 4).
+
 ## Todos
 
 There is a file with todos in `tasks/TODO.md`. This is used to note down todos while working on something else. It's input for you. When you complete a todo, remove it from the TODO.md file and make sure this change is included in the commit which fixes the todo.

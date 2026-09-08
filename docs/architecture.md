@@ -115,6 +115,9 @@ Example for Q1 2026 (2025-12-01 to 2026-02-28):
 
 **Data Collection:**
 - Git commits are extracted for the entire 12-month period
+- **Branch scope**: commits are counted only from each repository's configured branch (`branches` in `config/projects.yml`; typically `main` or `master`, `dev` for OSRD), not from all branches. Feature branches and unmerged pull-request branches are excluded, so the metrics reflect work integrated into the mainline rather than in-progress work. This is the decision that makes a completeness check of the committer mapping meaningful only against these same branches (see `playbooks/verifying-the-committer-mapping.md`); the report's methodology appendix states it for readers.
+- Merge commits are excluded (a commit with more than one parent); the per-repo extract log reports the remaining count as "human commits".
+- Bot and CI commits are **not** dropped: they are attributed to the `Bot` organization via the mapping and counted in the totals and the organization pie chart. They are only omitted from the report's inline "code-committing organizations" sentence.
 - Metrics are aggregated separately for:
   - **Quarterly snapshot**: Only commits within the quarter dates (from to to)
   - **Progress data**: All commits within the 12-month period
