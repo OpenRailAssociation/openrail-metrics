@@ -4,6 +4,8 @@ from pathlib import Path
 from typing import Dict, Optional, Tuple
 from collections import defaultdict
 
+from .identity import normalize_email, parse_committer_email
+
 
 def load_org_mapping(path: Path) -> Tuple[Dict[str, str], Dict[str, str]]:
     """Load organization mapping from SSV file.
@@ -34,22 +36,17 @@ def load_org_mapping(path: Path) -> Tuple[Dict[str, str], Dict[str, str]]:
             # Heuristic: if field3 looks like an email, it's canonical (new format)
             if '@' in field3 or field3.lower() in ['unknown', 'bot']:
                 # New format: Committer;Projects;Canonical;Organization
-                canonical = field3.strip().lower() if field3 else None
+                canonical = normalize_email(field3) if field3 else None
                 org = field4.strip()
             else:
                 # Old format: Committer;Projects;Organization;Canonical
                 org = field3.strip()
-                canonical = field4.strip().lower() if field4 else None
+                canonical = normalize_email(field4) if field4 else None
         else:
             continue
 
-        # Extract email from "Name <email>" format
-        if '<' in committer and '>' in committer:
-            email = committer.split('<')[1].split('>')[0]
-        else:
-            email = committer
-
-        email = email.lower().strip()
+        # Extract and normalize email from "Name <email>" format
+        email = parse_committer_email(committer)
         org = org.strip()
         
         # If no canonical specified, email is its own canonical
@@ -83,7 +80,7 @@ def get_organization(email: str, project_id: str, org_mapping: Optional[Tuple] =
         return "Unknown"
 
     email_to_canonical, canonical_to_org = org_mapping
-    email = email.lower().strip()
+    email = normalize_email(email)
 
     # Resolve to canonical
     canonical = email_to_canonical.get(email, email)

@@ -358,7 +358,7 @@ def update(projects, cache_dir, org_map):
             
             commits = git_ops.extract_commits(repo_path, start_date, end_date, branches)
             for commit in commits:
-                email = commit['email'].lower().strip()
+                email = identity.normalize_email(commit['email'])
                 email_projects[email].add(project_id)
     
     click.echo(f"\nFound {len(email_projects)} unique email addresses across all projects")
@@ -392,13 +392,8 @@ def update(projects, cache_dir, org_map):
         else:
             continue
         
-        # Extract email
-        if '<' in committer and '>' in committer:
-            email = committer.split('<')[1].split('>')[0]
-        else:
-            email = committer
-        
-        email = email.lower().strip()
+        # Extract and normalize email
+        email = identity.parse_committer_email(committer)
         seen_emails.add(email)
         
         # Update projects list if email is in our extracted data

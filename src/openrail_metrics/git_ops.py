@@ -6,6 +6,8 @@ from typing import List, Dict
 from datetime import date
 import re
 
+from .identity import normalize_email
+
 
 def sanitize_repo_name(url: str) -> str:
     """Convert repo URL to safe directory name."""
@@ -80,7 +82,7 @@ def extract_commits(repo_path: Path, from_date: date, to_date: date, branches: L
 
         commits.append({
             'hash': commit_hash,
-            'email': email.lower().strip(),
+            'email': normalize_email(email),
             'date': commit_date,
             'is_merge': parent_count > 1
         })
