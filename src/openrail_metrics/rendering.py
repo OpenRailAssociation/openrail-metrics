@@ -123,12 +123,16 @@ def render_project(project: Dict, metrics: Dict, graphics_dir: Path = None) -> s
     # Get project description
     project_description = project.get('description', '')
 
-    # Prepare repositories list with clickable links
-    repositories = ""
+    # Prepare repositories list with clickable links.
+    # Link text is the short repo name (the full URL wraps and makes long lists,
+    # e.g. the administrative project, overflow the page); the href stays full.
+    repositories = '<div class="repo-list">\n\n'
     for repo in project['repos']:
         # Handle both old format (string) and new format (dict)
         repo_url = repo if isinstance(repo, str) else repo['url']
-        repositories += f"- [{repo_url}]({repo_url})\n"
+        repo_name = repo_url.rstrip('/').rsplit('/', 1)[-1].removesuffix('.git')
+        repositories += f"- [{repo_name}]({repo_url})\n"
+    repositories += "\n</div>\n"
 
     # Prepare trend chart
     trend_chart = ""

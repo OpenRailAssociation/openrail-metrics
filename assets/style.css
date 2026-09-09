@@ -135,10 +135,25 @@ img.cc-license {
   margin: 0 1em 0.5em 0;
 }
 
-/* Make quarterly snapshot pie chart smaller */
+/* Quarterly snapshot pie chart: sized to sit legibly on its own page
+   below the summary statistics. */
 img.small-chart {
-  max-width: 40%;
+  max-width: 65%;
   margin: 1.5em auto;
+}
+
+/* Repository lists: smaller font and multi-column so long lists
+   (e.g. administrative projects) fit on one page without overflowing. */
+.repo-list ul {
+  font-size: 8.5pt;
+  columns: 2;
+  column-gap: 2em;
+  margin: 0.3em 0;
+}
+
+.repo-list li {
+  margin: 0.1em 0;
+  break-inside: avoid;
 }
 
 /* Prevent page breaks inside sections */

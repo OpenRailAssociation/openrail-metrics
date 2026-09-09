@@ -1,5 +1,7 @@
-The theme of Q2 2026 is steady progress. All projects show healthy development activity according to their status and lifecycle. It mostly is on the level of previous quarters.
+The theme of Q3 2026 is broadening participation. Activity across the incubated projects remains at the healthy level of previous quarters, with OSRD continuing to account for the bulk of contributions, driven primarily by SNCF.
 
-The exception is Netzgrafik-Editor, which sees a notable uptake of activity over the last months driven by the collaboration between SNCF and SBB.
+This quarter marks the arrival of MscViewer as a newly onboarded project, contributed by Greenstones. It brings a new contributing organization into the ecosystem and extends OpenRail's scope into railway telecommunication tooling (GSM-R).
 
-ÖBB has joined as a contributing organization through Hack4Rail activities, with contributions to administrative projects. There are no contributions to incubated projects from ÖBB yet, but the engagement through Hack4Rail provides a promising foundation for future involvement.
+Hack4Rail, held in June, left a visible mark on the data. Work started at the hackathon flowed into the incubated projects over the following weeks, including a new optimization layer for the DAC Migration DSS PopUpSim from Deutsche Bahn and automatic-layout work on Netzgrafik-Editor from SBB. This cross-company engagement continues the trend of collaboration beyond the projects' originating organizations.
+
+Netzgrafik-Editor sustains the elevated activity noted last quarter, reflecting the ongoing SNCF and SBB collaboration. The administrative projects remain the second-largest area of activity, supporting the association's growing operational needs.

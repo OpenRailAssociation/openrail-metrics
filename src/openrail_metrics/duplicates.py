@@ -3,13 +3,12 @@
 import re
 from collections import defaultdict
 
+from .identity import normalize_email, parse_committer_email
+
 
 def parse_email(committer_field):
     """Extract email from 'Name <email>' or just 'email' format."""
-    match = re.search(r'<([^>]+)>', committer_field)
-    if match:
-        return match.group(1).lower().strip()
-    return committer_field.lower().strip()
+    return parse_committer_email(committer_field)
 
 
 def parse_name(committer_field):
@@ -43,7 +42,7 @@ def load_mapping(path):
                     'email': parse_email(parts[0]),
                     'name': parse_name(parts[0]),
                     'projects': parts[1],
-                    'canonical': parts[2].lower().strip(),
+                    'canonical': normalize_email(parts[2]),
                     'org': parts[3]
                 })
     return entries
@@ -207,7 +206,7 @@ def apply_canonical_fixes(org_map_path, duplicates):
         parts = line.strip().split(';')
         if len(parts) >= 4:
             email = parse_email(parts[0])
-            old_canonical = parts[2].lower().strip()
+            old_canonical = normalize_email(parts[2])
             
             if email in email_to_canonical:
                 new_canonical = email_to_canonical[email]
@@ -240,7 +239,7 @@ def sort_org_mapping(org_map_path):
             entries.append({
                 'committer': parts[0],
                 'projects': parts[1],
-                'canonical': parts[2].lower().strip(),
+                'canonical': normalize_email(parts[2]),
                 'org': parts[3],
                 'line': line.strip()
             })
